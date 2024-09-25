@@ -24,7 +24,7 @@ import XIcon from '@mui/icons-material/X';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase'; // Firebaseの設定ファイルのパスを調整してください
 
-import '../../index.css';
+import '../../globals.css';
 import Link from 'next/link';
 
 // SidebarProps 型定義を追加

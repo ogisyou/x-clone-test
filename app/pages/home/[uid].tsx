@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import Sidebar from '../../components/sidebar/Sidebar';
-import Timeline from '../../components/timeline/Timeline';
-import Widgets from '../../components/widget/Widgets';
-import '../../index.css'; // カスタムCSSを適用
+// import Timeline from '../../components/timeline/Timeline';
+// import Widgets from '../../components/widget/Widgets';
+import '../../globals.css'; // カスタムCSSを適用
 import { db } from '@/app/firebase';
 
 // isGuest の型を boolean として指定
@@ -51,14 +51,14 @@ function Home({ isGuest }: HomeProps) {
   return (
     <div className="flex h-screen max-w-[1300px] mx-auto bg-black text-white">
       <Sidebar
-        username={username}
-        uid={uid}
-        className="sticky top-0 h-screen"
+        // username={username}
+        // uid={uid}
+        // className="sticky top-0 h-screen"
       />
-      <div className="border-x border-gray-700 w-full sm:max-w-[600px] overflow-auto h-screen custom-scrollbar">
+      {/* <div className="border-x border-gray-700 w-full sm:max-w-[600px] overflow-auto h-screen custom-scrollbar">
         <Timeline uid={uid} origin="home" />
       </div>
-      <Widgets uid={uid} className="sticky top-0 h-screen" />
+      <Widgets uid={uid} className="sticky top-0 h-screen" /> */}
     </div>
   );
 }

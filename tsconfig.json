@@ -17,8 +17,9 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",  // 追加: baseUrlを設定
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["*"]  // 修正: ルートから相対的に解決
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

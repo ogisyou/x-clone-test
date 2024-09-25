@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import Home from './pages/home/[uid]';
-import { useAuth, AuthProvider } from '@/app/contexts/AuthContext'; // AuthProvider をインポート
+import { useAuth, AuthProvider } from '@/app/contexts/AuthContext'; // このパスが正しいか
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -23,16 +23,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode; // childrenを使用するために型定義を追加
+}) {
+  const auth = useAuth(); // ここで useAuth を呼び出す
   return (
-    <AuthProvider> {/* AuthProvider でラップ */}
+    <AuthProvider>
       <html lang="ja">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <Home isGuest={useAuth().isAuthenticated} /> {/* isGuest を渡す */}
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <Home isGuest={auth.isAuthenticated} /> {/* auth を使用 */}
           {/* {children} */}
         </body>
       </html>
