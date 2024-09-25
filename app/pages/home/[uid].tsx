@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import Sidebar from '../components/sidebar/Sidebar';
-import Timeline from '../components/timeline/Timeline';
-import Widgets from '../components/widget/Widgets';
-import '../index.css'; // カスタムCSSを適用
+import Sidebar from '../../components/sidebar/Sidebar';
+import Timeline from '../../components/timeline/Timeline';
+import Widgets from '../../components/widget/Widgets';
+import '../../index.css'; // カスタムCSSを適用
 import { db } from '@/app/firebase';
 
 // isGuest の型を boolean として指定
@@ -20,7 +20,8 @@ function Home({ isGuest }: HomeProps) {
   const [loading, setLoading] = useState<boolean>(true); // loading は boolean
 
   useEffect(() => {
-    const fetchUserData = async (currentUser: any) => { // currentUser の型を any または適切な型にする
+    const fetchUserData = async (currentUser: any) => {
+      // currentUser の型を any または適切な型にする
       const storedUid = localStorage.getItem('uid');
       if (storedUid) {
         setUid(storedUid); // ローカルストレージからUIDを取得

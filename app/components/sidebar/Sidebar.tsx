@@ -18,43 +18,49 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import { getAuth, signOut } from 'firebase/auth';
-import { Link, useNavigate } from 'react-router-dom';
+import { getAuth, signOut, User } from 'firebase/auth'; // User型をインポート
+import { useRouter } from 'next/router'; // useNavigate ではなく useRouter をインポート
 import XIcon from '@mui/icons-material/X';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase'; // Firebaseの設定ファイルのパスを調整してください
 
 import '../../index.css';
+import Link from 'next/link';
 
-// Propsの型を定義
+// SidebarProps 型定義を追加
 interface SidebarProps {
-  username: string;
+  username?: string; // username はオプションのプロパティとして定義
 }
 
-interface User {
+// currentUser の型を定義
+interface CurrentUser {
   uid: string;
   displayName: string;
+  avatarURL?: string;
 }
 
-// SidebarコンポーネントをTypeScriptに変更
-const Sidebar: React.FC<SidebarProps> = ({ username }) => {
+// Sidebar コンポーネントに SidebarProps を適用
+function Sidebar({ username }: SidebarProps) {
   const [avatar, setAvatar] = useState<string>('');
   const auth = getAuth();
-  const navigate = useNavigate();
+  const router = useRouter(); // useNavigate の代わりに useRouter を使用
   const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null); // Userの型を指定
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null); // currentUser の型を指定
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         if (auth.currentUser) {
-          setCurrentUser(auth.currentUser as User); // User型にキャスト
+          setCurrentUser({
+            uid: auth.currentUser.uid,
+            displayName: auth.currentUser.displayName || '',
+          });
           const userDoc = doc(db, 'users', auth.currentUser.uid);
           const userSnap = await getDoc(userDoc);
-
+  
           if (userSnap.exists()) {
             const userData = userSnap.data();
-            setAvatar(userData.avatarURL || ''); // avatarURLが存在する場合はそのURLを設定
+            setAvatar(userData.avatarURL || ''); // avatarURL が存在する場合はその URL を設定
           }
         } else {
           // ゲストの場合の処理
@@ -64,14 +70,14 @@ const Sidebar: React.FC<SidebarProps> = ({ username }) => {
         console.error('Error fetching user data:', error);
       }
     };
-
+  
     fetchUserData();
   }, [auth.currentUser]);
 
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
-        navigate('/login');
+        router.push('/login'); // navigate ではなく router.push を使用
       })
       .catch((error) => {
         console.error('Logout error:', error);
@@ -99,13 +105,11 @@ const Sidebar: React.FC<SidebarProps> = ({ username }) => {
     <div className="hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5">
       <div className="flex items-center ml-6 mb-4 mt-5">
         <Link
-          to={`/home/${currentUser.uid}`}
+          href={`/home/${currentUser.uid}`} // to 属性ではなく href を使用
           className="flex items-center p-4 w-full rounded-full hover:bg-gray-800"
         >
           <XIcon className="!text-3xl " />
-          <h2 className="ml-4 text-blue-400 hidden xl:block">
-            {username || currentUser.displayName}
-          </h2>
+          <h2 className="ml-4 text-blue-400 hidden xl:block">{username || currentUser.displayName}</h2>
         </Link>
       </div>
       <div>
@@ -202,6 +206,6 @@ const Sidebar: React.FC<SidebarProps> = ({ username }) => {
       </div>
     </div>
   );
-};
+}
 
 export default Sidebar;
