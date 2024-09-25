@@ -1,0 +1,207 @@
+import React, { useState, useEffect } from 'react';
+import SidebarOption from './SidebarOption';
+import HomeIcon from '@mui/icons-material/Home';
+import SearchIcon from '@mui/icons-material/Search';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import PermIdentityIcon from '@mui/icons-material/PermIdentity';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import GroupIcon from '@mui/icons-material/Group';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import CropSquareIcon from '@mui/icons-material/CropSquare';
+import {
+  Button,
+  Avatar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material';
+import { getAuth, signOut } from 'firebase/auth';
+import { Link, useNavigate } from 'react-router-dom';
+import XIcon from '@mui/icons-material/X';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase'; // Firebaseの設定ファイルのパスを調整してください
+
+import '../../index.css';
+
+// Propsの型を定義
+interface SidebarProps {
+  username: string;
+}
+
+interface User {
+  uid: string;
+  displayName: string;
+}
+
+// SidebarコンポーネントをTypeScriptに変更
+const Sidebar: React.FC<SidebarProps> = ({ username }) => {
+  const [avatar, setAvatar] = useState<string>('');
+  const auth = getAuth();
+  const navigate = useNavigate();
+  const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null); // Userの型を指定
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        if (auth.currentUser) {
+          setCurrentUser(auth.currentUser as User); // User型にキャスト
+          const userDoc = doc(db, 'users', auth.currentUser.uid);
+          const userSnap = await getDoc(userDoc);
+
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            setAvatar(userData.avatarURL || ''); // avatarURLが存在する場合はそのURLを設定
+          }
+        } else {
+          // ゲストの場合の処理
+          setCurrentUser({ uid: 'guest', displayName: 'Guest_User' });
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [auth.currentUser]);
+
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        navigate('/login');
+      })
+      .catch((error) => {
+        console.error('Logout error:', error);
+      });
+  };
+
+  const handleOpenDialog = () => {
+    setOpenLogoutDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenLogoutDialog(false);
+  };
+
+  const handleConfirmLogout = () => {
+    handleLogout();
+    setOpenLogoutDialog(false);
+  };
+
+  if (!currentUser) {
+    return null; // currentUser が設定されるまでローディング表示
+  }
+
+  return (
+    <div className="hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5">
+      <div className="flex items-center ml-6 mb-4 mt-5">
+        <Link
+          to={`/home/${currentUser.uid}`}
+          className="flex items-center p-4 w-full rounded-full hover:bg-gray-800"
+        >
+          <XIcon className="!text-3xl " />
+          <h2 className="ml-4 text-blue-400 hidden xl:block">
+            {username || currentUser.displayName}
+          </h2>
+        </Link>
+      </div>
+      <div>
+        <SidebarOption
+          text="ホーム"
+          Icon={HomeIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="話題を検索"
+          Icon={SearchIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="通知"
+          Icon={NotificationsNoneIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="メッセージ"
+          Icon={MailOutlineIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="Grok"
+          Icon={CropSquareIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="ブックマーク"
+          Icon={BookmarkBorderIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="コミュニティ"
+          Icon={GroupIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="プレミアム"
+          Icon={XIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="認証済み組織"
+          Icon={VerifiedUserIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="プロフィール"
+          Icon={PermIdentityIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="もっとみる"
+          Icon={MoreHorizIcon}
+          customClasses="hidden xl:!block"
+        />
+
+        <Button
+          variant="outlined"
+          className="hidden xl:block !bg-blue-400 !mt-8 !border-none !h-12 !w-full custom-button"
+        >
+          ポストする
+        </Button>
+
+        <Button
+          variant="outlined"
+          className="custom-button !mt-8 !h-12 !w-full hidden xl:block"
+          onClick={handleOpenDialog}
+        >
+          ログアウト
+        </Button>
+        <div className="block xl:hidden cursor-pointer mt-3 ml-8">
+          <Avatar
+            src={avatar}
+            onClick={handleOpenDialog}
+            className={`${avatar ? 'bg-white' : ''}`}
+          ></Avatar>
+        </div>
+
+        <Dialog open={openLogoutDialog} onClose={handleCloseDialog}>
+          <DialogTitle>ログアウト</DialogTitle>
+          <DialogContent>
+            <p>ログアウトしますか？</p>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleConfirmLogout} color="primary">
+              はい
+            </Button>
+            <Button onClick={handleCloseDialog}>いいえ</Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;
