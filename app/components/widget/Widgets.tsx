@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import Search from '@mui/icons-material/Search';
 
+// Twitter Embed の lazy import
 const TwitterTweetEmbed = lazy(() =>
   import('react-twitter-embed').then((module) => ({
     default: module.TwitterTweetEmbed,
@@ -17,9 +18,15 @@ const TwitterShareButton = lazy(() =>
   }))
 );
 
-function Widgets() {
+// Propsのインターフェースを修正
+interface WidgetsProps {
+  uid: string; // uid をプロパティとして受け取る
+  className: string; 
+}
+
+function Widgets({ uid, className }: WidgetsProps) {
   return (
-    <div className="hidden lg:block lg:flex-[0.35] border-l border-gray-700">
+    <div className={`hidden lg:block lg:flex-[0.35] border-l border-gray-700 ${className}`}>
       <div className="flex items-center bg-twitter-background p-2 rounded-2xl mt-2 ml-5">
         <Search className="text-gray-500" />
         <input
