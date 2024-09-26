@@ -57,7 +57,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const { uid } = useParams(); // useParams() で URL パラメータから uid を取得
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
-  const { backgroundURLs } = useBackground();
+  const [backgroundURLs, setBackgroundURLs] = useBackground(); 
   const [tweetMessage, setTweetMessage] = useState<string>('');
   const [tweetImage, setTweetImage] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState<string>('');
@@ -210,14 +210,14 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       <div
         className="w-full h-52 bg-gray-800"
         style={{
-          backgroundImage: `url(${backgroundURLs[0]})`, // 最初の背景URLを使用
+          backgroundImage: `url(${backgroundURLs[0] || ''})`, // 最初の背景URLを使用
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       ></div>
 
       <Avatar
-        className={`absolute top-36 w-32 h-32 mt-1 border-4 border-black cursor-pointer xl:cursor-default ${
+        className={`!absolute top-36 !w-32 !h-32 mt-1 border-4 border-black cursor-pointer xl:cursor-default ${
           avatar ? 'bg-white' : ''
         }`}
         src={avatar}
@@ -230,7 +230,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
               pathname: `/profile/${uid}`,
               query: { background: JSON.stringify(location) }, // クエリパラメータとして location を渡す
             }}
-            className="text-white p-2 rounded-3xl border hover:bg-gray-700 bg-pink-400 font-bold"
+            className="text-white p-2 rounded-3xl border hover:bg-gray-700 bg-black font-bold"
           >
             プロフィールを編集
           </Link>

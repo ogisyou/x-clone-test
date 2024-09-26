@@ -7,11 +7,8 @@ interface BackgroundURL {
   description?: string; // 説明などのオプションプロパティ
 }
 
-// Contextの型を定義（オブジェクト型の配列）
-interface BackgroundContextType {
-  backgroundURLs: BackgroundURL[]; // URLはオブジェクトの配列
-  setBackgroundURLs: React.Dispatch<React.SetStateAction<BackgroundURL[]>>; // setStateの型
-}
+// Contextの型を定義（背景URLオブジェクトの配列）
+type BackgroundContextType = [BackgroundURL[], React.Dispatch<React.SetStateAction<BackgroundURL[]>>];
 
 // Contextの作成
 const BackgroundContext = createContext<BackgroundContextType | undefined>(undefined);
@@ -22,7 +19,7 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({ children
   const [backgroundURLs, setBackgroundURLs] = useState<BackgroundURL[]>([]);
 
   return (
-    <BackgroundContext.Provider value={{ backgroundURLs, setBackgroundURLs }}>
+    <BackgroundContext.Provider value={[backgroundURLs, setBackgroundURLs]}>
       {children}
     </BackgroundContext.Provider>
   );
@@ -37,5 +34,5 @@ export const useBackground = (): BackgroundContextType => {
     throw new Error('useBackgroundはBackgroundProvider内で使用する必要があります');
   }
 
-  return context;
+  return context; // 変更後、配列を返す
 };
