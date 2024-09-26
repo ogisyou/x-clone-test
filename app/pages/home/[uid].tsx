@@ -50,6 +50,7 @@ function Home({ isGuest }: HomeProps) {
 
   return (
     <div className="flex h-screen max-w-[1300px] mx-auto bg-black text-white">
+
       <Sidebar
         // username={username}
         // uid={uid}
