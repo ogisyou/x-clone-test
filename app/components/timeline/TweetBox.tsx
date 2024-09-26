@@ -26,7 +26,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CardTravelIcon from '@mui/icons-material/CardTravel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import XIcon from '@mui/icons-material/X';
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams } from 'next/navigation'; 
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useBackground } from '../../contexts/BackgroundContext';
 import {
@@ -54,10 +54,11 @@ interface TweetBoxProps {
 const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const auth = getAuth();
   const router = useRouter();
-  const { uid } = router.query; // URL パラメータから uid を取得
+  const searchParams = useSearchParams(); // searchParamsを取得
+  const uid = searchParams.get('uid'); // uidを取得
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
-  const [backgroundURL, setBackgroundURL] = useBackground();
+  const { backgroundURLs } = useBackground();
   const [tweetMessage, setTweetMessage] = useState<string>('');
   const [tweetImage, setTweetImage] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState<string>('');
@@ -93,7 +94,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
           setDisplayName(userData.displayName || '');
           setUsername(userData.username || '');
           setAvatar(userData.avatarURL || '');
-          setBackgroundURL(userData.backgroundURL || '');
           setBio(userData.bio || '');
           setProfile({
             bio: userData.bio || '',
@@ -111,7 +111,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     };
 
     fetchProfile();
-  }, [uid, setAvatar, setBackgroundURL, currentUser]);
+  }, [uid, setAvatar,currentUser]);
 
   const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -199,14 +199,15 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
 
   return (
     <div className="relative px-4 py-2 border-b-8 border-gray-700">
-      <div
-        className="w-full h-52 bg-gray-800"
-        style={{
-          backgroundImage: `url(${backgroundURL})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      ></div>
+<div
+  className="w-full h-52 bg-gray-800"
+  style={{
+    backgroundImage: `url(${backgroundURLs[0]})`, // 最初の背景URLを使用
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  }}
+></div>
+
       <Avatar
         className={`absolute top-36 w-32 h-32 mt-1 border-4 border-black cursor-pointer xl:cursor-default ${
           avatar ? 'bg-white' : ''

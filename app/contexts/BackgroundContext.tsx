@@ -1,10 +1,16 @@
 // src/contexts/BackgroundContext.tsx
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-// Contextの型を定義
+// 背景URLの型を定義
+interface BackgroundURL {
+  url: string; // 実際のURL
+  description?: string; // 説明などのオプションプロパティ
+}
+
+// Contextの型を定義（オブジェクト型の配列）
 interface BackgroundContextType {
-  backgroundURL: string | null; // URLは文字列またはnull
-  setBackgroundURL: React.Dispatch<React.SetStateAction<string | null>>; // setStateの型
+  backgroundURLs: BackgroundURL[]; // URLはオブジェクトの配列
+  setBackgroundURLs: React.Dispatch<React.SetStateAction<BackgroundURL[]>>; // setStateの型
 }
 
 // Contextの作成
@@ -12,10 +18,11 @@ const BackgroundContext = createContext<BackgroundContextType | undefined>(undef
 
 // Contextプロバイダーの作成
 export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [backgroundURL, setBackgroundURL] = useState<string | null>(null);
+  // 初期値は空の配列
+  const [backgroundURLs, setBackgroundURLs] = useState<BackgroundURL[]>([]);
 
   return (
-    <BackgroundContext.Provider value={{ backgroundURL, setBackgroundURL }}>
+    <BackgroundContext.Provider value={{ backgroundURLs, setBackgroundURLs }}>
       {children}
     </BackgroundContext.Provider>
   );
@@ -24,8 +31,11 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({ children
 // Contextを使用するためのカスタムフック
 export const useBackground = (): BackgroundContextType => {
   const context = useContext(BackgroundContext);
+  
+  // コンテキストが未定義の場合、エラーをスロー
   if (context === undefined) {
     throw new Error('useBackgroundはBackgroundProvider内で使用する必要があります');
   }
+
   return context;
 };
