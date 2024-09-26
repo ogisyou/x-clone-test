@@ -199,7 +199,7 @@ function Sidebar({ username, uid, className }: SidebarProps) {
             ログアウト
           </Button>
         </div>
-        <div className="block xl:hidden cursor-pointer mt-3 ml-8">
+        <div className="block xl:hidden cursor-pointer mt-3 ml-7">
           <Avatar
             src={avatar}
             onClick={handleOpenDialog}
