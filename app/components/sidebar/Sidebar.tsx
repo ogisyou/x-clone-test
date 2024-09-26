@@ -87,6 +87,9 @@ function Sidebar({ username, uid, className }: SidebarProps) {
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
+        // ローカルストレージの認証情報をクリア
+        localStorage.removeItem('isAuth');
+        localStorage.removeItem('uid');
         router.push('/login');
       })
       .catch((error) => {
