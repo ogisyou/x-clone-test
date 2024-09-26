@@ -1,12 +1,16 @@
 // next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
+  async headers() {
     return [
       {
-        source: '/',
-        destination: '/login',
-        permanent: false,
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+        ],
       },
     ];
   },
