@@ -31,7 +31,7 @@ import Link from 'next/link';
 
 // SidebarProps 型定義
 interface SidebarProps {
-  username: string; 
+  username: string;
   uid: string; // uid は必須
   className: string; // 修正: className プロパティを追加
 }
@@ -44,7 +44,8 @@ interface CurrentUser {
 }
 
 // Sidebar コンポーネント
-function Sidebar({ username, uid, className }: SidebarProps) { // 修正: className を受け取る
+function Sidebar({ username, uid, className }: SidebarProps) {
+  // 修正: className を受け取る
   const [avatar, setAvatar] = useState<string>('');
   const auth = getAuth();
   const router = useRouter();
@@ -59,7 +60,7 @@ function Sidebar({ username, uid, className }: SidebarProps) { // 修正: classN
         if (authUser) {
           const userDoc = doc(db, 'users', authUser.uid);
           const userSnap = await getDoc(userDoc);
-  
+
           if (userSnap.exists()) {
             const userData = userSnap.data();
             setCurrentUser({
@@ -111,28 +112,76 @@ function Sidebar({ username, uid, className }: SidebarProps) { // 修正: classN
   }
 
   return (
-    <div className={`hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5 ${className}`}>
-      <div className="flex items-center ml-6 mb-4 mt-5">
+    <div
+      className={` hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5 ${className}`}
+    >
+      <div className="flex items-center ml-4 mb-4 mt-5 ">
         <Link
           href={`/home/${currentUser.uid}`} // href 属性を使用
-          className="flex items-center p-4 w-full rounded-full hover:bg-gray-800"
+          className="flex items-center p-3 w-full rounded-full hover:bg-gray-800"
         >
-          <XIcon className="!text-3xl " />
-          <h2 className="ml-4 text-blue-400 hidden xl:block">{username || currentUser.displayName}</h2>
+          <XIcon className="text-xl" />
+          <h2 className="ml-4 text-blue-400 hidden xl:block">
+            {username || currentUser.displayName}
+          </h2>
         </Link>
       </div>
       <div>
-        <SidebarOption text="ホーム" Icon={HomeIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="話題を検索" Icon={SearchIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="通知" Icon={NotificationsNoneIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="メッセージ" Icon={MailOutlineIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="Grok" Icon={CropSquareIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="ブックマーク" Icon={BookmarkBorderIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="コミュニティ" Icon={GroupIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="プレミアム" Icon={XIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="認証済み組織" Icon={VerifiedUserIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="プロフィール" Icon={PermIdentityIcon} customClasses="hidden xl:!block" />
-        <SidebarOption text="もっとみる" Icon={MoreHorizIcon} customClasses="hidden xl:!block" />
+        <SidebarOption
+          text="ホーム"
+          Icon={HomeIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="話題を検索"
+          Icon={SearchIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="通知"
+          Icon={NotificationsNoneIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="メッセージ"
+          Icon={MailOutlineIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="Grok"
+          Icon={CropSquareIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="ブックマーク"
+          Icon={BookmarkBorderIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="コミュニティ"
+          Icon={GroupIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="プレミアム"
+          Icon={XIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="認証済み組織"
+          Icon={VerifiedUserIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="プロフィール"
+          Icon={PermIdentityIcon}
+          customClasses="hidden xl:!block"
+        />
+        <SidebarOption
+          text="もっとみる"
+          Icon={MoreHorizIcon}
+          customClasses="hidden xl:!block"
+        />
 
         <Button
           variant="outlined"

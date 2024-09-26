@@ -8,6 +8,7 @@ interface SidebarOptionProps {
   Icon: OverridableComponent<SvgIconTypeMap<{}, 'svg'>>;
   onClick?: () => void; // onClickはオプション
   customClasses?: string; // customClassesはオプション
+  iconSize?: string; // iconSizeを追加
 }
 
 const SidebarOption: React.FC<SidebarOptionProps> = ({
@@ -15,13 +16,14 @@ const SidebarOption: React.FC<SidebarOptionProps> = ({
   Icon,
   onClick,
   customClasses = "",
+  iconSize = "!text-3xl", 
 }) => {
   return (
     <div
-      className="flex items-center cursor-pointer ml-5 hover:bg-gray-700 rounded-full p-2"
+      className="flex items-center cursor-pointer ml-5 my-3 hover:bg-gray-700 rounded-full p-3"
       onClick={onClick}
     >
-      <Icon className="text-5xl p-2" />
+      <Icon className={`${iconSize}`} /> 
       <h2 className={`ml-4 font-bold text-lg ${customClasses}`}>
         {text}
       </h2>
