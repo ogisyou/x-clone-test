@@ -5,17 +5,14 @@ import { getAuth } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation'; // ルーティングを使用
 import Sidebar from '../../components/sidebar/Sidebar';
-import Timeline from '../../components/timeline/Timeline';
+// import Timeline from '../../components/timeline/Timeline';
 import Widgets from '../../components/widget/Widgets';
 import '../../globals.css'; // カスタムCSSを適用
 import { db } from '@/app/firebase';
 
-// isGuest の型を boolean として指定
-interface HomeProps {
-  isGuest: boolean;
-}
 
-function Home({ isGuest }: HomeProps) {
+
+function Home() {
   const searchParams = useSearchParams();
   const uid = searchParams.get('uid'); // URLクエリパラメータから 'uid' を取得
   const [username, setUsername] = useState<string>(''); // username は string
@@ -48,9 +45,9 @@ function Home({ isGuest }: HomeProps) {
         uid={uid as string} // uid を string にキャスト
         className="sticky top-0 h-screen"
       />
-      <div className="border-x border-gray-700 w-full sm:max-w-[600px] overflow-auto h-screen custom-scrollbar">
+      {/* <div className="border-x border-gray-700 w-full sm:max-w-[600px] overflow-auto h-screen custom-scrollbar">
         <Timeline uid={uid as string} origin="home" />
-      </div>
+      </div> */}
       <Widgets uid={uid as string} className="sticky top-0 h-screen" />
     </div>
   );

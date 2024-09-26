@@ -14,6 +14,17 @@ const nextConfig = {
       },
     ];
   },
+  
+  // ルートからログインページへのリダイレクト設定を追加
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/login', // ルートをログインページにリダイレクト
+        permanent: true, // 永続的なリダイレクト
+      },
+    ];
+  },
 };
 
 export default nextConfig;
