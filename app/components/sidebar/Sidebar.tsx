@@ -115,7 +115,7 @@ function Sidebar({ username, uid, className }: SidebarProps) {
     <div
       className={` hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5 ${className}`}
     >
-      <div className="flex items-center ml-6 mb-4 mt-5 ">
+      <div className="flex items-center ml-6 mb-3 mt-5 ">
         <Link
           href={`/home/${currentUser.uid}`} // href 属性を使用
           className="flex items-center p-3 w-full rounded-full hover:bg-gray-800"

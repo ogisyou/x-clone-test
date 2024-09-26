@@ -41,6 +41,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth, signOut } from 'firebase/auth';
 import Link from 'next/link';
 
+
 interface Profile {
   bio: string;
   birthplace: string;
@@ -224,72 +225,118 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       <div className="text-end mt-4">
 
 
-        <div
+      <div
           className={`${
-            currentUid === uid || uid?.includes('guest') ? '' : 'invisible'
+            currentUid === uid ? '' : 'invisible'
           }`}
         >
           <Link
             href={`/profile/${uid}`}
+            state={{ backgroundLocation: location }}
             className="text-white p-2 rounded-3xl border hover:bg-gray-700 bg-black font-bold"
           >
             プロフィールを編集
           </Link>
         </div>
-        <div className="text-white flex gap-1">
-          <h3 className="text-lg">{displayName}</h3>
-          <span className="text-gray-400">@{username}</span>
-        </div>
       </div>
 
-      {/* ツイートボックス */}
-      <form onSubmit={sendTweet} className="mt-10 flex flex-col">
-        <textarea
-          className="resize-none h-24 p-3 border rounded-md outline-none"
-          value={tweetMessage}
-          onChange={(e) => setTweetMessage(e.target.value)}
-          placeholder="ツイートを入力..."
-          maxLength={280}
-        />
-        {tweetImage && (
-          <div className="relative">
-            <img
-              src={URL.createObjectURL(tweetImage)}
-              alt="Selected"
-              className="mt-2 w-full h-auto rounded-md"
-            />
-            <button
-              type="button"
-              onClick={() => setTweetImage(null)}
-              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-            >
-              <XIcon />
-            </button>
+      <form onSubmit={sendTweet} className="w-full">
+        <div className="items-center mb-2">
+          <div className="text-sm p-1 mt-10">
+            <h3 className="font-bold text-xl">{displayName}</h3>
+            <div className="items-center text-gray-400 mb-2">
+              <div>
+                <VerifiedUserIcon className="text-twitter-color mr-1 !text-sm" />@
+                {username}
+              </div>
+            </div>
+
+            <div className="tweetBox">
+              <p className="text-justify">{bio}</p>
+              <div className="flex my-2">
+                <div className="flex text-gray-400">
+                  <PlaceIcon className="text-xl sm:text-lg" />
+                  {profile.birthplace}
+                </div>
+                <div className="flex ml-5 text-gray-400">
+                  <CakeIcon className="text-xl mr-1 sm:text-lg" />
+                  {profile.birthDate}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex text-gray-400 mt-3">
+              <Link
+              href={`/recommended/${uid}/recommended`}
+                className="mr-5 hover:border-b"
+              >
+                おすすめのユーザー
+              </Link>
+              <Link
+                href={`/following/${uid}/following`}
+                className="mr-5 hover:border-b"
+              >
+                <span className="mr-1 text-white">{followingCount}</span>
+                フォロー中
+              </Link>
+              <Link
+                href={`/followers/${uid}/followers`}
+                className="mr-5 hover:border-b"
+              >
+                <span className="mr-1 text-white">{followersCount}</span>
+                フォロワー
+              </Link>
+            </div>
           </div>
-        )}
-        <div className="flex justify-between items-center mt-2">
-          <div className="flex items-center">
-            <label htmlFor="tweetImage" className="cursor-pointer">
-              <InsertPhotoIcon className="text-blue-500 mr-2" />
-              <input
-                id="tweetImage"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
-            <GifBoxIcon className="text-blue-500" />
-            <SentimentSatisfiedAltIcon className="text-blue-500" />
-            <EventNoteIcon className="text-blue-500" />
-            <PlaceIcon className="text-blue-500" />
+        </div>
+
+        <div className="border-b border-gray-700 pb-1">
+          <input
+            value={tweetMessage}
+            placeholder="いまどうしている？"
+            type="text"
+            maxLength={160}
+            onChange={(e) => setTweetMessage(e.target.value)}
+            className="w-full bg-black text-lg border-none outline-none"
+          />
+        </div>
+
+        <div className="flex justify-between items-center p-1 my-2">
+          <div className="flex-1 flex items-center">
+            {tweetImage && <p className="text-white">{tweetImage.name}</p>}
           </div>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-md"
+          <Button
+            variant="outlined"
+            className="custom-button !bg-black !p-1 !text-xs sm:!text-sm"
+            onClick={() => fileInputRef.current.click()}
           >
-            ツイート
-          </button>
+            画像の選択
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            hidden
+            onChange={handleImageChange}
+          />
+        </div>
+        <div className="flex justify-between items-center border-t border-gray-700">
+          <div className="sm:space-x-1 text-blue-400">
+            <InsertPhotoIcon className="text-xl sm:text-2xl" />
+            <GifBoxIcon className="text-xl sm:text-2xl" />
+            <BallotIcon className="text-xl sm:text-2xl" />
+            <SentimentSatisfiedAltIcon className="text-xl sm:text-2xl" />
+            <EventNoteIcon className="text-xl sm:text-2xl" />
+            <PlaceIcon className="text-xl sm:text-2xl" />
+          </div>
+
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            className="custom-button !bg-blue-400 !text-xs mt-1 sm:!text-sm sm:!mt-2 sm:!w-32 sm:!px-7"
+          >
+            ポストする
+          </Button>
         </div>
       </form>
 
