@@ -26,7 +26,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CardTravelIcon from '@mui/icons-material/CardTravel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import XIcon from '@mui/icons-material/X';
-import { useRouter, useSearchParams } from 'next/navigation'; 
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useBackground } from '../../contexts/BackgroundContext';
 import {
@@ -111,14 +111,16 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     };
 
     fetchProfile();
-  }, [uid, setAvatar,currentUser]);
+  }, [uid, setAvatar, currentUser]);
 
   const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       let avatarURL = avatar;
-      let displayName = currentUser ? currentUser.displayName : 'ゲストユーザー'; // ゲストユーザーの場合のデフォルト名
+      let displayName = currentUser
+        ? currentUser.displayName
+        : 'ゲストユーザー'; // ゲストユーザーの場合のデフォルト名
       let userUid = currentUser ? currentUser.uid : `guest_${uid}`; // ゲストユーザーには一意のUIDを設定
 
       // ゲストユーザーの場合の処理
@@ -197,16 +199,20 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     event.target.value = '';
   };
 
+        {/* デバッグログを追加 */}
+        console.log('Current UID:', currentUid, 'Requested UID:', uid);
+
+
   return (
     <div className="relative px-4 py-2 border-b-8 border-gray-700">
-<div
-  className="w-full h-52 bg-gray-800"
-  style={{
-    backgroundImage: `url(${backgroundURLs[0]})`, // 最初の背景URLを使用
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-  }}
-></div>
+      <div
+        className="w-full h-52 bg-gray-800"
+        style={{
+          backgroundImage: `url(${backgroundURLs[0]})`, // 最初の背景URLを使用
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      ></div>
 
       <Avatar
         className={`absolute top-36 w-32 h-32 mt-1 border-4 border-black cursor-pointer xl:cursor-default ${
@@ -214,10 +220,10 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
         }`}
         src={avatar}
         onClick={() => toggleDrawer(true)}
-      />
+        />
       <div className="text-end mt-4">
-        {/* デバッグログを追加 */}
-        console.log('Current UID:', currentUid, 'Requested UID:', uid)
+
+
         <div
           className={`${
             currentUid === uid || uid?.includes('guest') ? '' : 'invisible'
@@ -288,7 +294,11 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       </form>
 
       {/* ドロワー */}
-      <Drawer anchor="right" open={openDrawer} onClose={() => toggleDrawer(false)}>
+      <Drawer
+        anchor="right"
+        open={openDrawer}
+        onClose={() => toggleDrawer(false)}
+      >
         <div className="w-60 h-full p-4">
           <h3 className="text-xl">メニュー</h3>
           <div className="flex flex-col mt-4">
@@ -297,20 +307,29 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
             <SidebarOption text="支払い" Icon={PaymentsIcon} />
             <SidebarOption text="記事" Icon={ArticleIcon} />
             <SidebarOption text="設定" Icon={SettingsIcon} />
-            <SidebarOption text="ログアウト" Icon={LogoutIcon} onClick={() => setOpenLogoutDialog(true)} />
+            <SidebarOption
+              text="ログアウト"
+              Icon={LogoutIcon}
+              onClick={() => setOpenLogoutDialog(true)}
+            />
           </div>
         </div>
       </Drawer>
 
       {/* ログアウト確認ダイアログ */}
-      <Dialog open={openLogoutDialog} onClose={() => setOpenLogoutDialog(false)}>
+      <Dialog
+        open={openLogoutDialog}
+        onClose={() => setOpenLogoutDialog(false)}
+      >
         <DialogTitle>ログアウトしますか？</DialogTitle>
         <DialogContent>
           <p>ログアウトすると、現在のセッションが終了します。</p>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenLogoutDialog(false)}>キャンセル</Button>
-          <Button onClick={handleLogout} color="primary">ログアウト</Button>
+          <Button onClick={handleLogout} color="primary">
+            ログアウト
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

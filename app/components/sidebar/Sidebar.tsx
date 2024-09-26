@@ -115,7 +115,7 @@ function Sidebar({ username, uid, className }: SidebarProps) {
     <div
       className={` hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5 ${className}`}
     >
-      <div className="flex items-center ml-4 mb-4 mt-5 ">
+      <div className="flex items-center ml-6 mb-4 mt-5 ">
         <Link
           href={`/home/${currentUser.uid}`} // href 属性を使用
           className="flex items-center p-3 w-full rounded-full hover:bg-gray-800"
@@ -182,21 +182,23 @@ function Sidebar({ username, uid, className }: SidebarProps) {
           Icon={MoreHorizIcon}
           customClasses="hidden xl:!block"
         />
-
-        <Button
-          variant="outlined"
-          className="hidden xl:block !bg-blue-400 !mt-8 !border-none !h-12 !w-full custom-button"
-        >
-          ポストする
-        </Button>
-
-        <Button
-          variant="outlined"
-          className="custom-button !mt-8 !h-12 !w-full hidden xl:block"
-          onClick={handleOpenDialog}
-        >
-          ログアウト
-        </Button>
+        <div className="hidden xl:block">
+          <Button
+            variant="outlined"
+            className=" !bg-blue-400 !mt-8 !border-none !h-12 !w-full custom-button"
+          >
+            ポストする
+          </Button>
+        </div>
+        <div className="hidden xl:block">
+          <Button
+            variant="outlined"
+            className="custom-button !mt-8 !h-12 !w-full hidden xl:block"
+            onClick={handleOpenDialog}
+          >
+            ログアウト
+          </Button>
+        </div>
         <div className="block xl:hidden cursor-pointer mt-3 ml-8">
           <Avatar
             src={avatar}
