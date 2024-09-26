@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage"; // 追加
 
 // 環境変数を使ってFirebaseの設定
 const firebaseConfig = {
@@ -18,6 +19,7 @@ const app = initializeApp(firebaseConfig);
 // Firebaseの認証とデータベースのインスタンス
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app); 
 
 // Google認証用のプロバイダーをエクスポート
 export const provider = new GoogleAuthProvider(); // GoogleAuthProvider を使用する場合

@@ -15,7 +15,6 @@ import CakeIcon from '@mui/icons-material/Cake';
 import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import PlaceIcon from '@mui/icons-material/Place';
-import VerifiedUser from '@mui/icons-material/VerifiedUser';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SidebarOption from '../sidebar/SidebarOption';
 import ArticleIcon from '@mui/icons-material/Article';
@@ -27,8 +26,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CardTravelIcon from '@mui/icons-material/CardTravel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import XIcon from '@mui/icons-material/X';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useBackground } from '../../contexts/BackgroundContext';
 import {
@@ -41,29 +39,38 @@ import {
 import { db, storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth, signOut } from 'firebase/auth';
-import { useLocation } from 'react-router-dom';
+import Link from 'next/link';
 
-function TweetBox({ origin }) {
+interface Profile {
+  bio: string;
+  birthplace: string;
+  birthDate: string;
+}
+
+interface TweetBoxProps {
+  origin: string;
+}
+
+const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const auth = getAuth();
-  const { uid } = useParams(); // URL パラメータから uid を取得
+  const router = useRouter();
+  const { uid } = router.query; // URL パラメータから uid を取得
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
   const [backgroundURL, setBackgroundURL] = useBackground();
-  const [tweetMessage, setTweetMessage] = useState('');
-  const [tweetImage, setTweetImage] = useState(null);
-  const [displayName, setDisplayName] = useState('');
-  const [username, setUsername] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [openDrawer, setOpenDrawer] = useState(false);
-  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
-  const [followingCount, setFollowingCount] = useState(0);
-  const [followersCount, setFollowersCount] = useState(0);
-  const [currentUid, setCurrentUid] = useState('');
-  const fileInputRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation(); // 現在のlocationを取得
-  const [bio, setBio] = useState('');
-  const [profile, setProfile] = useState({
+  const [tweetMessage, setTweetMessage] = useState<string>('');
+  const [tweetImage, setTweetImage] = useState<File | null>(null);
+  const [displayName, setDisplayName] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [openDrawer, setOpenDrawer] = useState<boolean>(false);
+  const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
+  const [followingCount, setFollowingCount] = useState<number>(0);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [currentUid, setCurrentUid] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [bio, setBio] = useState<string>('');
+  const [profile, setProfile] = useState<Profile>({
     bio: '',
     birthplace: '',
     birthDate: '',
@@ -78,7 +85,7 @@ function TweetBox({ origin }) {
     // 他のユーザーのプロフィールを取得
     const fetchProfile = async () => {
       try {
-        const userDocRef = doc(db, 'users', uid);
+        const userDocRef = doc(db, 'users', uid as string);
         const docSnap = await getDoc(userDocRef);
 
         if (docSnap.exists()) {
@@ -106,14 +113,14 @@ function TweetBox({ origin }) {
     fetchProfile();
   }, [uid, setAvatar, setBackgroundURL, currentUser]);
 
-  const sendTweet = async (e) => {
+  const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     try {
       let avatarURL = avatar;
-      let displayName = currentUser ? currentUser.displayName : 'Guest User'; // ゲストユーザーの場合のデフォルト名
+      let displayName = currentUser ? currentUser.displayName : 'ゲストユーザー'; // ゲストユーザーの場合のデフォルト名
       let userUid = currentUser ? currentUser.uid : `guest_${uid}`; // ゲストユーザーには一意のUIDを設定
-  
+
       // ゲストユーザーの場合の処理
       if (!currentUser) {
         avatarURL = avatar || ''; // デフォルトのアバターまたは空の文字列
@@ -121,7 +128,7 @@ function TweetBox({ origin }) {
         // ログイン済みユーザーの情報をFirestoreから取得
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userDocRef);
-  
+
         if (userSnap.exists()) {
           const userData = userSnap.data();
           avatarURL = userData.avatarURL || ''; // ユーザーのアバターURLを取得、存在しない場合は空文字
@@ -130,7 +137,7 @@ function TweetBox({ origin }) {
           console.log('ユーザー情報が見つかりません');
         }
       }
-  
+
       // アバター画像が変更された場合のアップロード処理
       if (selectedFile) {
         const uniqueFileName = `${Date.now()}_${selectedFile.name}`;
@@ -138,7 +145,7 @@ function TweetBox({ origin }) {
         await uploadBytes(storageRef, selectedFile);
         avatarURL = await getDownloadURL(storageRef);
       }
-  
+
       // 画像が選択されている場合はアップロード
       let tweetImageUrl = '';
       if (tweetImage) {
@@ -147,7 +154,7 @@ function TweetBox({ origin }) {
         await uploadBytes(imageRef, tweetImage);
         tweetImageUrl = await getDownloadURL(imageRef);
       }
-  
+
       // Firestoreに投稿データを追加
       await addDoc(collection(db, 'posts'), {
         displayName: displayName,
@@ -161,7 +168,7 @@ function TweetBox({ origin }) {
         profileUid: uid, // URLパラメータから取得したUID
         origin: origin, // origin情報を保持
       });
-  
+
       // 投稿後のリセット
       setTweetMessage('');
       setTweetImage(null);
@@ -170,26 +177,24 @@ function TweetBox({ origin }) {
       console.error('投稿中にエラーが発生しました:', error);
     }
   };
-  
-  
 
-  const toggleDrawer = (open) => {
+  const toggleDrawer = (open: boolean) => {
     setOpenDrawer(open);
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login');
+      router.push('/login');
     } catch (error) {
       console.error('ログアウト中にエラーが発生しました:', error);
     }
   };
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null;
     setTweetImage(file);
-    event.target.value = null;
+    event.target.value = '';
   };
 
   return (
@@ -211,179 +216,104 @@ function TweetBox({ origin }) {
       />
       <div className="text-end mt-4">
         {/* デバッグログを追加 */}
-        {console.log('Current UID:', currentUid, 'Requested UID:', uid)}
+        console.log('Current UID:', currentUid, 'Requested UID:', uid)
         <div
           className={`${
-            currentUid === uid || uid.includes('guest') ? '' : 'invisible'
+            currentUid === uid || uid?.includes('guest') ? '' : 'invisible'
           }`}
         >
           <Link
-            to={`/profile/${uid}`}
-            state={{ backgroundLocation: location }}
+            href={`/profile/${uid}`}
             className="text-white p-2 rounded-3xl border hover:bg-gray-700 bg-black font-bold"
           >
             プロフィールを編集
           </Link>
         </div>
+        <div className="text-white flex gap-1">
+          <h3 className="text-lg">{displayName}</h3>
+          <span className="text-gray-400">@{username}</span>
+        </div>
       </div>
 
-      <form onSubmit={sendTweet} className="w-full">
-        <div className="items-center mb-2">
-          <div className="text-sm p-1 mt-10">
-            <h3 className="font-bold text-xl">{displayName}</h3>
-            <div className="items-center text-gray-400 mb-2">
-              <div>
-                <VerifiedUser className="text-twitter-color mr-1 !text-sm" />@
-                {username}
-              </div>
-            </div>
-
-            <div className="tweetBox">
-              <p className="text-justify">{bio}</p>
-              <div className="flex my-2">
-                <div className="flex text-gray-400">
-                  <PlaceIcon className="text-xl sm:text-lg" />
-                  {profile.birthplace}
-                </div>
-                <div className="flex ml-5 text-gray-400">
-                  <CakeIcon className="text-xl mr-1 sm:text-lg" />
-                  {profile.birthDate}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex text-gray-400 mt-3">
-              <Link
-                to={`/recommended/${uid}/recommended`}
-                className="mr-5 hover:border-b"
-              >
-                おすすめのユーザー
-              </Link>
-              <Link
-                to={`/following/${uid}/following`}
-                className="mr-5 hover:border-b"
-              >
-                <span className="mr-1 text-white">{followingCount}</span>
-                フォロー中
-              </Link>
-              <Link
-                to={`/followers/${uid}/followers`}
-                className="mr-5 hover:border-b"
-              >
-                <span className="mr-1 text-white">{followersCount}</span>
-                フォロワー
-              </Link>
-            </div>
+      {/* ツイートボックス */}
+      <form onSubmit={sendTweet} className="mt-10 flex flex-col">
+        <textarea
+          className="resize-none h-24 p-3 border rounded-md outline-none"
+          value={tweetMessage}
+          onChange={(e) => setTweetMessage(e.target.value)}
+          placeholder="ツイートを入力..."
+          maxLength={280}
+        />
+        {tweetImage && (
+          <div className="relative">
+            <img
+              src={URL.createObjectURL(tweetImage)}
+              alt="Selected"
+              className="mt-2 w-full h-auto rounded-md"
+            />
+            <button
+              type="button"
+              onClick={() => setTweetImage(null)}
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+            >
+              <XIcon />
+            </button>
           </div>
-        </div>
-
-        <div className="border-b border-gray-700 pb-1">
-          <input
-            value={tweetMessage}
-            placeholder="いまどうしている？"
-            type="text"
-            maxLength={160}
-            onChange={(e) => setTweetMessage(e.target.value)}
-            className="w-full bg-black text-lg border-none outline-none"
-          />
-        </div>
-
-        <div className="flex justify-between items-center p-1 my-2">
-          <div className="flex-1 flex items-center">
-            {tweetImage && <p className="text-white">{tweetImage.name}</p>}
+        )}
+        <div className="flex justify-between items-center mt-2">
+          <div className="flex items-center">
+            <label htmlFor="tweetImage" className="cursor-pointer">
+              <InsertPhotoIcon className="text-blue-500 mr-2" />
+              <input
+                id="tweetImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+            <GifBoxIcon className="text-blue-500" />
+            <SentimentSatisfiedAltIcon className="text-blue-500" />
+            <EventNoteIcon className="text-blue-500" />
+            <PlaceIcon className="text-blue-500" />
           </div>
-          <Button
-            variant="outlined"
-            className="custom-button !bg-black !p-1 !text-xs sm:!text-sm"
-            onClick={() => fileInputRef.current.click()}
-          >
-            画像の選択
-          </Button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            hidden
-            onChange={handleImageChange}
-          />
-        </div>
-        <div className="flex justify-between items-center border-t border-gray-700">
-          <div className="sm:space-x-1 text-blue-400">
-            <InsertPhotoIcon className="text-xl sm:text-2xl" />
-            <GifBoxIcon className="text-xl sm:text-2xl" />
-            <BallotIcon className="text-xl sm:text-2xl" />
-            <SentimentSatisfiedAltIcon className="text-xl sm:text-2xl" />
-            <EventNoteIcon className="text-xl sm:text-2xl" />
-            <PlaceIcon className="text-xl sm:text-2xl" />
-          </div>
-
-          <Button
-            variant="contained"
-            color="primary"
+          <button
             type="submit"
-            className="custom-button !bg-blue-400 !text-xs mt-1 sm:!text-sm sm:!mt-2 sm:!w-32 sm:!px-7"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md"
           >
-            ポストする
-          </Button>
+            ツイート
+          </button>
         </div>
       </form>
 
-      <Drawer
-        anchor="left"
-        open={openDrawer}
-        onClose={() => toggleDrawer(false)}
-        className="block sm:hidden"
-        PaperProps={{
-          style: {
-            height: '100vh',
-          },
-        }}
-      >
-        <div className="p-4 bg-black text-white border-r-4 border-gray-700 h-full">
-          <div>
-            <SidebarOption
-              text={currentUser ? currentUser.displayName : ''}
-              Icon={XIcon}
-              onClick={() => {
-                toggleDrawer(false); // ドロワーを閉じる
-                navigate(`/home/${currentUser.uid}`); // ホームページに移動する
-              }}
-              customText="text-blue-400 text-2xl"
-              customClasses="text-blue-400"
-            />
-
+      {/* ドロワー */}
+      <Drawer anchor="right" open={openDrawer} onClose={() => toggleDrawer(false)}>
+        <div className="w-60 h-full p-4">
+          <h3 className="text-xl">メニュー</h3>
+          <div className="flex flex-col mt-4">
             <SidebarOption text="プロフィール" Icon={PermIdentityIcon} />
-            <SidebarOption text="プレミアム" Icon={XIcon} />
-            <SidebarOption text="リスト" Icon={ArticleIcon} />
             <SidebarOption text="ブックマーク" Icon={BookmarkBorderIcon} />
-            <SidebarOption text="認証済み組織" Icon={VerifiedUserIcon} />
-            <SidebarOption text="収益化" Icon={PaymentsIcon} />
-            <SidebarOption text="広告" Icon={OpenInNewIcon} />
-            <SidebarOption text="求人" Icon={CardTravelIcon} />
-            <SidebarOption text="設定とプライバシー" Icon={SettingsIcon} />
-            <SidebarOption
-              text="ログアウト"
-              Icon={LogoutIcon}
-              onClick={() => setOpenLogoutDialog(true)}
-            />
+            <SidebarOption text="支払い" Icon={PaymentsIcon} />
+            <SidebarOption text="記事" Icon={ArticleIcon} />
+            <SidebarOption text="設定" Icon={SettingsIcon} />
+            <SidebarOption text="ログアウト" Icon={LogoutIcon} onClick={() => setOpenLogoutDialog(true)} />
           </div>
         </div>
       </Drawer>
 
-      <Dialog
-        open={openLogoutDialog}
-        onClose={() => setOpenLogoutDialog(false)}
-      >
-        <DialogTitle>ログアウト</DialogTitle>
+      {/* ログアウト確認ダイアログ */}
+      <Dialog open={openLogoutDialog} onClose={() => setOpenLogoutDialog(false)}>
+        <DialogTitle>ログアウトしますか？</DialogTitle>
         <DialogContent>
-          <p>本当にログアウトしますか？</p>
+          <p>ログアウトすると、現在のセッションが終了します。</p>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenLogoutDialog(false)}>キャンセル</Button>
-          <Button onClick={handleLogout}>ログアウト</Button>
+          <Button onClick={handleLogout} color="primary">ログアウト</Button>
         </DialogActions>
       </Dialog>
     </div>
   );
-}
+};
 
 export default TweetBox;

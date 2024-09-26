@@ -1,3 +1,4 @@
+// app/components/timeline/Post.tsx
 import React, { forwardRef } from 'react';
 import { Avatar } from '@mui/material';
 import VerifiedUser from '@mui/icons-material/VerifiedUser';
@@ -13,7 +14,20 @@ import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getAuth } from 'firebase/auth';
 
-const Post = forwardRef(
+// PostData 型を定義
+interface PostData {
+  id: string;
+  displayName: string;
+  username: string;
+  verified: boolean;
+  text: string;
+  image?: string; // 画像はオプショナル
+  avatar?: string; // アバターもオプショナル
+  postUid: string;
+  timestamp: string; // タイムスタンプの型を指定
+}
+
+const Post = forwardRef<HTMLDivElement, PostData>(
   (
     {
       id,
@@ -58,7 +72,7 @@ const Post = forwardRef(
                 {verified && (
                   <VerifiedUser className="text-twitter-color !text-sm" />
                 )}{' '}
-                @{username} <span className='ml-3'>{timestamp}</span>
+                @{username} <span className="ml-3">{timestamp}</span>
               </span>
             </h3>
 
