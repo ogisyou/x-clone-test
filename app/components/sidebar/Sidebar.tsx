@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import SidebarOption from './SidebarOption';
 import HomeIcon from '@mui/icons-material/Home';
@@ -18,8 +20,8 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import { getAuth, signOut, User } from 'firebase/auth';
-import { useRouter } from 'next/router';
+import { getAuth, signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import XIcon from '@mui/icons-material/X';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -31,7 +33,7 @@ import Link from 'next/link';
 interface SidebarProps {
   username: string; 
   uid: string; // uid は必須
-  className: string;
+  className: string; // 修正: className プロパティを追加
 }
 
 // currentUser 型
@@ -42,7 +44,7 @@ interface CurrentUser {
 }
 
 // Sidebar コンポーネント
-function Sidebar({ username, uid }: SidebarProps) {
+function Sidebar({ username, uid, className }: SidebarProps) { // 修正: className を受け取る
   const [avatar, setAvatar] = useState<string>('');
   const auth = getAuth();
   const router = useRouter();
@@ -79,7 +81,7 @@ function Sidebar({ username, uid }: SidebarProps) {
     };
 
     fetchUserData();
-  }, [auth.currentUser]);
+  }, [auth]);
 
   const handleLogout = () => {
     signOut(auth)
@@ -109,7 +111,7 @@ function Sidebar({ username, uid }: SidebarProps) {
   }
 
   return (
-    <div className="hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5">
+    <div className={`hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5 ${className}`}>
       <div className="flex items-center ml-6 mb-4 mt-5">
         <Link
           href={`/home/${currentUser.uid}`} // href 属性を使用

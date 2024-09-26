@@ -1,39 +1,21 @@
-'use client';
-import React, { createContext, useContext, useState } from 'react';
+// app/contexts/AuthContext.tsx
+import { createContext, useContext, useState, ReactNode } from 'react';
 
-// User 型を定義
-interface User {
-  id: string; // ユーザーID
-  name: string; // ユーザー名
-  email?: string; // メールアドレス（オプション）
-  // 他のプロパティを必要に応じて追加
+interface AuthContextProps {
+  isAuth: boolean;
+  setIsAuth: (value: boolean) => void;
+  uid: string | null;
+  setUid: (value: string | null) => void;
 }
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  user: User | null; // User型またはnullを許容
-  login: (user: User) => void; // ログイン関数（User型を受け取る）
-  logout: () => void; // ログアウト関数
-}
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null); // User型またはnullを許容
-
-  const login = (user: User) => {
-    setIsAuthenticated(true);
-    setUser(user);
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-  };
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [isAuth, setIsAuth] = useState(false);
+  const [uid, setUid] = useState<string | null>(null);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuth, setIsAuth, uid, setUid }}>
       {children}
     </AuthContext.Provider>
   );
