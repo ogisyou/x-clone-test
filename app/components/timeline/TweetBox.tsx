@@ -26,7 +26,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CardTravelIcon from '@mui/icons-material/CardTravel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import XIcon from '@mui/icons-material/X';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useBackground } from '../../contexts/BackgroundContext';
 import {
@@ -41,7 +41,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth, signOut } from 'firebase/auth';
 import Link from 'next/link';
 
-
 interface Profile {
   bio: string;
   birthplace: string;
@@ -55,8 +54,7 @@ interface TweetBoxProps {
 const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const auth = getAuth();
   const router = useRouter();
-  const searchParams = useSearchParams(); // searchParamsを取得
-  const uid = searchParams.get('uid'); // uidを取得
+  const { uid } = useParams(); // useParams() で URL パラメータから uid を取得
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
   const { backgroundURLs } = useBackground();
@@ -79,6 +77,8 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   });
 
   useEffect(() => {
+
+
     // ログインしているユーザーのUIDを設定
     if (currentUser) {
       setCurrentUid(currentUser.uid);
@@ -200,9 +200,10 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     event.target.value = '';
   };
 
-        {/* デバッグログを追加 */}
-        console.log('Current UID:', currentUid, 'Requested UID:', uid);
-
+  {
+    /* デバッグログを追加 */
+  }
+  console.log('Current UID:', currentUid, 'URL取得 UID:', uid);
 
   return (
     <div className="relative px-4 py-2 border-b-8 border-gray-700">
@@ -221,19 +222,15 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
         }`}
         src={avatar}
         onClick={() => toggleDrawer(true)}
-        />
+      />
       <div className="text-end mt-4">
-
-
-      <div
-          className={`${
-            currentUid === uid ? '' : 'invisible'
-          }`}
-        >
+        <div className={`${currentUid === uid ? '' : 'invisible'}`}>
           <Link
-            href={`/profile/${uid}`}
-            state={{ backgroundLocation: location }}
-            className="text-white p-2 rounded-3xl border hover:bg-gray-700 bg-black font-bold"
+            href={{
+              pathname: `/profile/${uid}`,
+              query: { background: JSON.stringify(location) }, // クエリパラメータとして location を渡す
+            }}
+            className="text-white p-2 rounded-3xl border hover:bg-gray-700 bg-pink-400 font-bold"
           >
             プロフィールを編集
           </Link>
@@ -246,8 +243,8 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
             <h3 className="font-bold text-xl">{displayName}</h3>
             <div className="items-center text-gray-400 mb-2">
               <div>
-                <VerifiedUserIcon className="text-twitter-color mr-1 !text-sm" />@
-                {username}
+                <VerifiedUserIcon className="text-twitter-color mr-1 !text-sm" />
+                @{username}
               </div>
             </div>
 
@@ -267,7 +264,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
 
             <div className="flex text-gray-400 mt-3">
               <Link
-              href={`/recommended/${uid}/recommended`}
+                href={`/recommended/${uid}/recommended`}
                 className="mr-5 hover:border-b"
               >
                 おすすめのユーザー
@@ -308,7 +305,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
           <Button
             variant="outlined"
             className="custom-button !bg-black !p-1 !text-xs sm:!text-sm"
-            onClick={() => fileInputRef.current.click()}
+            onClick={() => fileInputRef.current?.click()}
           >
             画像の選択
           </Button>
