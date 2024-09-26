@@ -1,23 +1,38 @@
+// app/components/timeline/Timeline.tsx
 import React, { useState, useEffect } from 'react';
 import TweetBox from './TweetBox';
 import Post from './Post';
-import { db, auth } from '../../firebase'; // Firebase auth をインポート
-import { collection, onSnapshot, orderBy, query, where} from 'firebase/firestore';
+import { db, auth } from '../../firebase'; 
+import { collection, onSnapshot, orderBy, query, where, QuerySnapshot, QueryDocumentSnapshot, FirestoreError, DocumentData } from 'firebase/firestore';
+import { getAuth, signInAnonymously } from 'firebase/auth'; // 追加
 import FlipMove from 'react-flip-move';
-import { useParams } from 'react-router-dom'; // URLからUIDを取得するため
-import { getAuth, signInAnonymously } from 'firebase/auth'; // Firebase匿名認証
 
-function Timeline({ origin }) {
-  const [posts, setPosts] = useState([]);
-  const { uid: profileUid } = useParams(); // URLパラメータからUIDを取得
-  const [currentUser, setCurrentUser] = useState(auth.currentUser); // 現在のログインユーザーのUIDを取得
+interface PostData {
+  id: string;
+  displayName: string;
+  username: string;
+  verified: boolean;
+  text: string;
+  avatar: string;
+  image: string;
+  uid: string;
+  timestamp: any; 
+}
 
-  // ゲストユーザーとしてサインインする関数
+interface TimelineProps {
+  origin: string;
+  uid: string; // uid を追加
+}
+
+const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [currentUser, setCurrentUser] = useState(auth.currentUser); 
+
   const signInAsGuest = async () => {
     const auth = getAuth();
     try {
       const guestUser = await signInAnonymously(auth);
-      setCurrentUser(guestUser.user); // ゲストユーザーをセット
+      setCurrentUser(guestUser.user); 
       console.log('ゲストとしてサインイン:', guestUser.user);
     } catch (error) {
       console.error('ゲストサインイン中にエラーが発生しました:', error);
@@ -26,89 +41,85 @@ function Timeline({ origin }) {
 
   useEffect(() => {
     if (!currentUser) {
-      signInAsGuest(); // 現在のユーザーが存在しない場合はゲストとしてサインイン
+      signInAsGuest(); 
     }
   }, [currentUser]);
 
   useEffect(() => {
-    if (!currentUser || !profileUid) return; // UIDが未取得ならクエリ実行しない
+    if (!currentUser) return; 
 
-    console.log('Timelineに渡されたorigin:', origin); // デバッグ用
-    console.log('現在のログインユーザーUID:', currentUser.uid); // デバッグ用
-    console.log('URLパラメータUID (profileUid):', profileUid); // デバッグ用
+    console.log('Timelineに渡されたorigin:', origin);
+    console.log('現在のログインユーザーUID:', currentUser.uid);
+    console.log('URLパラメータUID (profileUid):', uid);
 
     const postData = collection(db, 'posts');
 
-    // クエリの条件を作成
     let q;
 
     if (origin === 'home') {
       q = query(
         postData,
-        where('profileUid', '==', currentUser.uid), // 現在のログインユーザーのUID
-        orderBy('timestamp', 'desc') // 時間でソート
+        where('profileUid', '==', currentUser.uid), 
+        orderBy('timestamp', 'desc') 
       );
     } else if (origin === 'user') {
       q = query(
         postData,
-        where('uid', '==', currentUser.uid), // 現在のログインユーザーのUID
-        where('profileUid', '==', profileUid), // URLパラメータUID
-        where('origin', '==', 'user'), // originがuserの場合
-        orderBy('timestamp', 'desc') // 時間でソート
+        where('uid', '==', uid), // uidを直接使用
+        where('profileUid', '==', uid), 
+        where('origin', '==', 'user'), 
+        orderBy('timestamp', 'desc') 
       );
     }
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      try {
-        const allPosts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (q) {
+      const unsubscribe = onSnapshot(q, (querySnapshot: QuerySnapshot<DocumentData>) => {
+        const allPosts = querySnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
+          id: doc.id,
+          ...doc.data() as Omit<PostData, 'id'> // 'id' を除外して展開
+        }));
         setPosts(allPosts);
-      } catch (err) {
-        console.error('投稿の取得中にエラーが発生しました:', err);
-      }
-    }, (error) => {
-      console.error('Firestore リスナーエラー:', error);
-    });
+      }, (error: FirestoreError) => {
+        console.error('Firestore リスナーエラー:', error);
+      });
 
-    return () => {
-      console.log('リスナー解除');
-      unsubscribe();
-    };
-  }, [origin, profileUid, currentUser]);
+      return () => {
+        console.log('リスナー解除');
+        unsubscribe();
+      };
+    }
+  }, [origin, uid, currentUser]); // profileUid を uid に変更
 
   return (
     <div className="flex-[1] border-b-0 border-gray-700 xl:flex-[0.45] h-full">
-      <TweetBox origin={origin} uid={profileUid} />
-  
+      <TweetBox origin={origin} uid={uid} /> {/* uidを直接使用 */}
       <FlipMove>
-      {posts.length > 0 ? (
-        posts.map((post) => {
-          // タイムスタンプをDateオブジェクトに変換し、フォーマットする
-          const timestamp = post.timestamp?.toDate();
-          const formattedDate = timestamp
-            ? timestamp.toLocaleString() // 日時をフォーマット
-            : '';
-  
-          return (
-            <Post
-              key={post.id}
-              id={post.id}
-              displayName={post.displayName}
-              username={post.username}
-              verified={post.verified}
-              text={post.text}
-              avatar={post.avatar}
-              image={post.image}
-              postUid={post.uid}
-              timestamp={formattedDate} // フォーマットされた日付を渡す
-            />
-          );
-        })
-      ) : (
-        <p className="text-gray-500">投稿がありません</p>
-      )}
+        {posts.length > 0 ? (
+          posts.map((post) => {
+            const timestamp = post.timestamp?.toDate();
+            const formattedDate = timestamp ? timestamp.toLocaleString() : '';
+
+            return (
+              <Post
+                key={post.id}
+                id={post.id}
+                displayName={post.displayName}
+                username={post.username}
+                verified={post.verified}
+                text={post.text}
+                avatar={post.avatar}
+                image={post.image}
+                postUid={post.uid}
+                timestamp={formattedDate} 
+              />
+            );
+          })
+        ) : (
+          <p className="text-gray-500">投稿がありません</p>
+        )}
       </FlipMove>
     </div>
   );
-}
+};
 
 export default Timeline;
