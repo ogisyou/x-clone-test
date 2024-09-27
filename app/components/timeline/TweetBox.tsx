@@ -57,7 +57,8 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const { uid } = useParams(); // useParams() で URL パラメータから uid を取得
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
-  const [backgroundURLs, setBackgroundURLs] = useBackground(); 
+  const { backgroundURLs, setBackgroundURLs } = useBackground();
+  const backgroundURL = backgroundURLs[0] || null;
   const [tweetMessage, setTweetMessage] = useState<string>('');
   const [tweetImage, setTweetImage] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState<string>('');
