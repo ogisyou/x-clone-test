@@ -357,6 +357,11 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
         className="block sm:hidden"
         open={openDrawer}
         onClose={() => toggleDrawer(false)}
+        PaperProps={{
+          style: {
+            height: '100vh',
+          },
+        }}
       >
         <div className="w-60 h-full p-4 bg-black text-white border-r-4 border-gray-700">
           <div className="flex flex-col mt-1">
@@ -393,15 +398,15 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
         open={openLogoutDialog}
         onClose={() => setOpenLogoutDialog(false)}
       >
-        <DialogTitle>ログアウトしますか？</DialogTitle>
+        <DialogTitle>ログアウト</DialogTitle>
         <DialogContent>
-          <p>ログアウトすると、現在のセッションが終了します。</p>
+          <p>ログアウトしますか？</p>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenLogoutDialog(false)}>キャンセル</Button>
           <Button onClick={handleLogout} color="primary">
-            ログアウト
+            はい
           </Button>
+          <Button onClick={() => setOpenLogoutDialog(false)}>いいえ</Button>
         </DialogActions>
       </Dialog>
     </div>
