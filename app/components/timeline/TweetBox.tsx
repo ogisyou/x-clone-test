@@ -78,8 +78,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   });
 
   useEffect(() => {
-
-
     // ログインしているユーザーのUIDを設定
     if (currentUser) {
       setCurrentUid(currentUser.uid);
@@ -202,8 +200,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     event.target.value = '';
   };
 
-  
-    /* デバッグログを追加 */
+  /* デバッグログを追加 */
   // console.log('Current UID:', currentUid, 'URL取得 UID:', uid);
 
   return (
@@ -340,18 +337,32 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
 
       {/* ドロワー */}
       <Drawer
-        anchor="right"
+        anchor="left"
+        className="block sm:hidden"
         open={openDrawer}
         onClose={() => toggleDrawer(false)}
       >
-        <div className="w-60 h-full p-4">
-          <h3 className="text-xl">メニュー</h3>
-          <div className="flex flex-col mt-4">
+        <div className="w-60 h-full p-4 bg-black text-white border-r-4 border-gray-700">
+          <div className="flex flex-col mt-1">
+            <SidebarOption
+              text={currentUser?.displayName || 'Gest_User'} 
+              Icon={XIcon}
+              onClick={() => {
+                toggleDrawer(false); // ドロワーを閉じる
+                router.push(`/home/${currentUser?.uid || 'guest'}`);
+              }}
+              
+              customClasses="text-blue-400 text-xl"
+            />
             <SidebarOption text="プロフィール" Icon={PermIdentityIcon} />
+            <SidebarOption text="プレミアム" Icon={XIcon} />
+            <SidebarOption text="リスト" Icon={ArticleIcon} />
             <SidebarOption text="ブックマーク" Icon={BookmarkBorderIcon} />
-            <SidebarOption text="支払い" Icon={PaymentsIcon} />
-            <SidebarOption text="記事" Icon={ArticleIcon} />
-            <SidebarOption text="設定" Icon={SettingsIcon} />
+            <SidebarOption text="認証済み組織" Icon={VerifiedUserIcon} />
+            <SidebarOption text="収益化" Icon={PaymentsIcon} />
+            <SidebarOption text="広告" Icon={OpenInNewIcon} />
+            <SidebarOption text="求人" Icon={CardTravelIcon} />
+            <SidebarOption text="設定とプライバシー" Icon={SettingsIcon} />
             <SidebarOption
               text="ログアウト"
               Icon={LogoutIcon}
