@@ -122,7 +122,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       let avatarURL = avatar;
       let displayName = currentUser
         ? currentUser.displayName
-        : 'ゲストユーザー'; // ゲストユーザーの場合のデフォルト名
+        : 'ゲストユーザー'; // ゲストユーザーの場合のデフォルト
       let userUid = currentUser ? currentUser.uid : `guest_${uid}`; // ゲストユーザーには一意のUIDを設定
 
       // ゲストユーザーの場合の処理
