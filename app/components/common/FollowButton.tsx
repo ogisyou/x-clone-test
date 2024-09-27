@@ -3,7 +3,13 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { db } from '../../firebase';
 
-const FollowButton = ({ userId, following, onFollowChange }) => {
+interface FollowButtonProps {
+  userId: string;
+  following: Set<string>;
+  onFollowChange?: (userId: string, isFollowing: boolean) => void;
+}
+
+const FollowButton: React.FC<FollowButtonProps> = ({ userId, following, onFollowChange }) => {
   const [isFollowing, setIsFollowing] = useState(false);
 
   const auth = getAuth();
@@ -66,10 +72,7 @@ const FollowButton = ({ userId, following, onFollowChange }) => {
   };
 
   return (
-    <button
-      className="w-24 bg-white text-black font-bold rounded-full p-1 mr-3 hover:bg-gray-300"
-      onClick={isFollowing ? handleUnfollow : handleFollow}
-    >
+    <button onClick={isFollowing ? handleUnfollow : handleFollow}>
       {isFollowing ? 'フォロー中' : 'フォロー'}
     </button>
   );

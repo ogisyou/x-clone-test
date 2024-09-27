@@ -1,27 +1,41 @@
+"use client";
+
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams, usePathname } from 'next/navigation';
 
-const TabMenu = ({ tabs, activeTab }) => {
-  const navigate = useNavigate();
-  const { uid } = useParams(); // uid を URL から取得
+interface Tab {
+  name: string;
+  label: string;
+}
 
-  const handleNavigation = (tab) => {
-    navigate(`/${tab}/${uid}/${tab}`); // uid を含めてタブに応じたページに遷移
+interface TabMenuProps {
+  tabs: Tab[];
+}
+
+const TabMenu: React.FC<TabMenuProps> = ({ tabs }) => {
+  const params = useParams();
+  const pathname = usePathname();
+  const uid = params.uid as string;
+  const currentTab = pathname.split('/').pop() || '';
+
+  const getTabUrl = (tabName: string) => {
+    return `/${tabName}/${uid}/${tabName}`;
   };
 
   return (
     <div className="flex items-center border-b border-gray-700">
       {tabs.map((t) => (
         <div key={t.name} className="relative flex-1">
-          <button
+          <Link
+            href={getTabUrl(t.name)}
             className={`p-3 w-full text-gray-400 hover:bg-gray-800 text-center cursor-pointer text-sm sm:text-base ${
-              activeTab === t.name ? 'text-white' : ''
+              currentTab === t.name ? 'text-white' : ''
             }`}
-            onClick={() => handleNavigation(t.name)}
           >
             {t.label}
-          </button>
-          {activeTab === t.name && (
+          </Link>
+          {currentTab === t.name && (
             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-500" />
           )}
         </div>
