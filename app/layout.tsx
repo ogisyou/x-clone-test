@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AvatarProvider } from './contexts/AvatarContext';
 import { BackgroundProvider } from './contexts/BackgroundContext'; 
+import './globals.css';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
