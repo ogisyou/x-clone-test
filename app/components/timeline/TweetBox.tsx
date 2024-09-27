@@ -54,7 +54,7 @@ interface TweetBoxProps {
 const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const auth = getAuth();
   const router = useRouter();
-  const { uid } = useParams(); // useParams() で URL パラメータから uid を取得
+  const { uid } = useParams(); // useParams() で URL パラメータから uid 
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
   const { backgroundURLs, setBackgroundURLs } = useBackground();
