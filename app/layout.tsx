@@ -8,24 +8,31 @@ import { AvatarProvider } from './contexts/AvatarContext';
 import { BackgroundProvider } from './contexts/BackgroundContext'; 
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuth, setIsAuth, setUid } = useAuth();
+
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    const storedIsAuth = localStorage.getItem('isAuth') === 'true';
-    const storedUid = localStorage.getItem('uid');
-    
-    // クライアントサイドでのみ状態を更新
-    setIsAuth(storedIsAuth);
-    setUid(storedUid);
-  }, [setIsAuth, setUid]);
+  const { setIsAuth, setUser } = useAuth();
 
   useEffect(() => {
-    if (!isAuth && pathname !== '/login') {
-      router.push('/login');
-    }
-  }, [isAuth, pathname, router]);
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'isAuth') {
+        setIsAuth(event.newValue === 'true');
+      } else if (event.key === 'user') {
+        if (event.newValue) {
+          setUser(JSON.parse(event.newValue));
+        } else {
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [setIsAuth, setUser]);
 
   return (
     <html lang="ja">

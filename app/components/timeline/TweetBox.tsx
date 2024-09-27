@@ -127,6 +127,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       // ゲストユーザーの場合の処理
       if (!currentUser) {
         avatarURL = avatar || ''; // デフォルトのアバターまたは空の文字列
+        console.log('ユーザーが認証されていません');
       } else {
         // ログイン済みユーザーの情報をFirestoreから取得
         const userDocRef = doc(db, 'users', currentUser.uid);

@@ -1,43 +1,52 @@
-// app/contexts/AuthContext.tsx
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextProps {
   isAuth: boolean;
   setIsAuth: (value: boolean) => void;
-  uid: string | null;
-  setUid: (value: string | null) => void;
+  user: User | null;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuth, setIsAuth] = useState(false);
-  const [uid, setUid] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const auth = getAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    // ユーザーの認証状態を監視
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // ユーザーがログインしている場合
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
         setIsAuth(true);
-        setUid(user.uid);
-        console.log('ユーザーがログインしました:', user.uid);
+        setUser(currentUser);
+        console.log('ユーザーがログインしました:', currentUser.uid);
       } else {
-        // ユーザーがログアウトしている場合
         setIsAuth(false);
-        setUid(null);
+        setUser(null);
         console.log('ユーザーがログアウトしました');
+        router.push('/login');
       }
     });
 
-    // クリーンアップ関数
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth, router]);
+
+  const signInAsGuest = async () => {
+    try {
+      const guestUser = await signInAnonymously(auth);
+      setIsAuth(true);
+      setUser(guestUser.user);
+      console.log('ゲストとしてサインイン:', guestUser.user.uid);
+    } catch (error) {
+      console.error('ゲストサインイン中にエラーが発生しました:', error);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ isAuth, setIsAuth, uid, setUid }}>
+    <AuthContext.Provider value={{ isAuth, setIsAuth, user, setUser }}>
       {children}
     </AuthContext.Provider>
   );
