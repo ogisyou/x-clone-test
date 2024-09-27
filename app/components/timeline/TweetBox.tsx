@@ -188,11 +188,27 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // ユーザーがログアウトした後にリスナーを解除
+
+      localStorage.removeItem('isAuth');
+      localStorage.removeItem('uid');
       router.push('/login');
     } catch (error) {
-      console.error('ログアウト中にエラーが発生しました:', error);
+      console.error('Logout error:', error);
     }
   };
+  
+  
+
+  const handleOpenDialog = () => {
+    setOpenLogoutDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenLogoutDialog(false);
+  };
+
+
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -366,7 +382,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
             <SidebarOption
               text="ログアウト"
               Icon={LogoutIcon}
-              onClick={() => setOpenLogoutDialog(true)}
+              onClick={handleOpenDialog}
             />
           </div>
         </div>
