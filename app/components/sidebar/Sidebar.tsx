@@ -32,7 +32,7 @@ import Link from 'next/link';
 // SidebarProps 型定義
 interface SidebarProps {
   username: string;
-  uid: string; // uid は必須
+  uid: string; 
   className: string; // 修正: className プロパティを追加
 }
 
