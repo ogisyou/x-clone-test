@@ -201,10 +201,9 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     event.target.value = '';
   };
 
-  {
+  
     /* デバッグログを追加 */
-  }
-  console.log('Current UID:', currentUid, 'URL取得 UID:', uid);
+  // console.log('Current UID:', currentUid, 'URL取得 UID:', uid);
 
   return (
     <div className="relative px-4 py-2 border-b-8 border-gray-700">
