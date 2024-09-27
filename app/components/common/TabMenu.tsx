@@ -24,23 +24,24 @@ const TabMenu: React.FC<TabMenuProps> = ({ tabs }) => {
   };
 
   return (
-    <div className="flex items-center border-b border-gray-700">
-      {tabs.map((t) => (
-        <div key={t.name} className="relative flex-1">
-          <Link
-            href={getTabUrl(t.name)}
-            className={`p-3 w-full text-gray-400 hover:bg-gray-800 text-center cursor-pointer text-sm sm:text-base ${
-              currentTab === t.name ? 'text-white' : ''
-            }`}
-          >
-            {t.label}
-          </Link>
-          {currentTab === t.name && (
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-500" />
-          )}
-        </div>
-      ))}
+<div className="flex items-center border-b mt-1 border-gray-700">
+  {tabs.map((t) => (
+    <div key={t.name} className="relative flex-grow ">
+      <Link
+        href={getTabUrl(t.name)}
+        className={`block  p-3  text-gray-400 hover:bg-gray-800 text-center cursor-pointer text-sm sm:text-base ${
+          currentTab === t.name ? 'text-white' : ''
+        }`}
+      >
+        {t.label}
+      </Link>
+      {currentTab === t.name && (
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-500" />
+      )}
     </div>
+  ))}
+</div>
+
   );
 };
 
