@@ -24,7 +24,7 @@ const TabMenu: React.FC<TabMenuProps> = ({ tabs }) => {
   };
 
   return (
-<div className="flex items-center border-b mt-1 border-gray-700">
+<div className="flex items-center border-b  border-gray-700">
   {tabs.map((t) => (
     <div key={t.name} className="relative flex-grow ">
       <Link
