@@ -7,6 +7,7 @@ interface AuthContextProps {
   setIsAuth: (value: boolean) => void;
   user: User | null;
   setUser: (user: User | null) => void;
+  loading: boolean; // loading 状態を追加
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // loading 初期値を true に
   const auth = getAuth();
   const router = useRouter();
 
@@ -29,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('ユーザーがログアウトしました');
         router.push('/login');
       }
+      setLoading(false); // 認証状態のチェックが完了したら loading を false に
     });
 
     return () => unsubscribe();
@@ -46,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuth, setIsAuth, user, setUser }}>
+    <AuthContext.Provider value={{ isAuth, setIsAuth, user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

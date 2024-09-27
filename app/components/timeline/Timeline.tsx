@@ -25,16 +25,15 @@ interface TimelineProps {
 
 const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [currentUser, setCurrentUser] = useState(auth.currentUser); 
+  const [currentUser, setCurrentUser] = useState(auth.currentUser);
 
   const signInAsGuest = async () => {
     const authInstance = getAuth();
     
-    // 既存のユーザーがいる場合はゲストサインインをスキップ
     if (authInstance.currentUser) {
       console.log('既存のユーザーが存在します:', authInstance.currentUser.uid);
-      setCurrentUser(authInstance.currentUser); 
-      return; 
+      setCurrentUser(authInstance.currentUser);
+      return;
     }
 
     try {
@@ -47,19 +46,23 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
   };
 
   useEffect(() => {
-    // 現在のユーザーが存在しない場合のみゲストサインインを試みる
-    if (!currentUser) {
+    if (auth.currentUser && !currentUser) {
+      setCurrentUser(auth.currentUser);
+      return;
+    }
+
+    if (!auth.currentUser) {
       signInAsGuest();
     } else {
-      console.log('既存のユーザーでログイン:', currentUser.uid);
+      console.log('既存のユーザーでログイン:', auth.currentUser.uid);
     }
-  }, [currentUser]); // currentUser を依存配列に追加
+  }, []); // currentUser を依存配列から削除
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'posts'), (snapshot) => {
       const allPosts = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data() as Omit<PostData, 'id'> 
+        ...doc.data() as Omit<PostData, 'id'>
       }));
       setPosts(allPosts);
     });
@@ -71,10 +74,10 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
   }, []); // 初回レンダリング時に投稿データを取得
 
   useEffect(() => {
-    if (!currentUser) return; // currentUser が存在しない場合は何もしない
+    if (!auth.currentUser) return; // currentUser が存在しない場合は何もしない
 
     console.log('Timelineに渡されたorigin:', origin);
-    console.log('現在のログインユーザーUID:', currentUser.uid);
+    console.log('現在のログインユーザーUID:', auth.currentUser.uid);
     console.log('URLパラメータUID (profileUid):', uid);
 
     const postData = collection(db, 'posts');
@@ -83,16 +86,16 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     if (origin === 'home') {
       q = query(
         postData,
-        where('profileUid', '==', currentUser.uid), 
-        orderBy('timestamp', 'desc') 
+        where('profileUid', '==', auth.currentUser.uid),
+        orderBy('timestamp', 'desc')
       );
     } else if (origin === 'user') {
       q = query(
         postData,
-        where('uid', '==', uid), 
-        where('profileUid', '==', uid), 
-        where('origin', '==', 'user'), 
-        orderBy('timestamp', 'desc') 
+        where('uid', '==', uid),
+        where('profileUid', '==', uid),
+        where('origin', '==', 'user'),
+        orderBy('timestamp', 'desc')
       );
     }
 
@@ -100,7 +103,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       const unsubscribe = onSnapshot(q, (querySnapshot: QuerySnapshot<DocumentData>) => {
         const allPosts = querySnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
           id: doc.id,
-          ...doc.data() as Omit<PostData, 'id'> 
+          ...doc.data() as Omit<PostData, 'id'>
         }));
         setPosts(allPosts);
       }, (error: FirestoreError) => {
@@ -112,7 +115,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
         unsubscribe();
       };
     }
-  }, [origin, uid, currentUser]); // currentUser を依存配列に追加
+  }, [origin, uid]); // currentUser を依存配列から削除
 
   return (
     <div className="flex-[1] border-b-0 border-gray-700 xl:flex-[0.45] h-full">
