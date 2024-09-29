@@ -78,15 +78,15 @@ const Timeline: React.FC<TimelineProps> = ({ origin,uid}) => {
 
   useEffect(() => {
     if (!auth.currentUser) return; // currentUser が存在しない場合は何もしない
-
+  
     console.log('Timelineに渡されたorigin:', origin);
     console.log('現在のログインユーザーUID:', auth.currentUser.uid);
     console.log('URLパラメータUID (profileUid):', profileUid);
     console.log('UID (uid):', uid);
-
+  
     const postData = collection(db, 'posts');
     let q;
-
+  
     if (origin === 'home') {
       q = query(
         postData,
@@ -96,11 +96,12 @@ const Timeline: React.FC<TimelineProps> = ({ origin,uid}) => {
     } else if (origin === 'user') {
       q = query(
         postData,
-        where('profileUid', '==', profileUid), 
+        where('profileUid', '==', profileUid), // profileUidが profileUid または uid に一致する投稿を取得
+        where('uid', 'in', [profileUid, auth.currentUser.uid]), // profileUidが profileUid または uid に一致する投稿を取得
         orderBy('timestamp', 'desc')
       );
     }
-
+  
     if (q) {
       const unsubscribe = onSnapshot(q, (querySnapshot: QuerySnapshot<DocumentData>) => {
         const allPosts = querySnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
@@ -111,13 +112,14 @@ const Timeline: React.FC<TimelineProps> = ({ origin,uid}) => {
       }, (error: FirestoreError) => {
         console.error('Firestore リスナーエラー:', error);
       });
-
+  
       return () => {
         console.log('リスナー解除');
         unsubscribe();
       };
     }
-  }, [origin, profileUid]); // currentUser を依存配列から削除
+  }, [origin, profileUid]); // uid を依存配列に追加
+   // currentUser を依存配列から削除
 
   return (
     <div className="flex-[1] border-b-0 border-gray-700 xl:flex-[0.45] h-full">
