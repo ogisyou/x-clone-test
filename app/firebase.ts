@@ -1,7 +1,7 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage"; // 追加
+import { getStorage } from "firebase/storage"; 
 
 // 環境変数を使ってFirebaseの設定
 const firebaseConfig = {
@@ -13,13 +13,24 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Firebaseの初期化
-const app = initializeApp(firebaseConfig);
+// Firebaseの初期化をクライアントサイドでのみ実行
+let app;
+if (typeof window !== "undefined") {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    console.log("Firebase initialized:", app);
+  } else {
+    app = getApp(); // 既に初期化されている場合はそれを使用
+  }
+}
 
-// Firebaseの認証とデータベースのインスタンス
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app); 
+// 初期化確認用のコンソールログ
+console.log("Firebase initialized:", app);
 
-// Google認証用のプロバイダーをエクスポート
-export const provider = new GoogleAuthProvider(); // GoogleAuthProvider を使用する場合
+// Firebaseの認証とデータベースのインスタンス（クライアントサイドのみ利用）
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
+export const storage = app ? getStorage(app) : null;
+
+// Google認証用のプロバイダーをエクスポート（クライアントサイドのみ）
+export const provider = app ? new GoogleAuthProvider() : null;

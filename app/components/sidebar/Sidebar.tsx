@@ -56,7 +56,7 @@ function Sidebar({ username,className }: SidebarProps) {
       try {
         const authUser = auth.currentUser;
 
-        if (authUser) {
+        if (authUser && db) {
           const userDoc = doc(db, 'users', authUser.uid);
           const userSnap = await getDoc(userDoc);
 
