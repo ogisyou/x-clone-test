@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AvatarProvider } from './contexts/AvatarContext';
 import { BackgroundProvider } from './contexts/BackgroundContext'; 
@@ -10,8 +9,6 @@ import './globals.css';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
-  const router = useRouter();
-  const pathname = usePathname();
 
   const { setIsAuth, setUser } = useAuth();
 

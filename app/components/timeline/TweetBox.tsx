@@ -204,10 +204,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     setOpenLogoutDialog(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenLogoutDialog(false);
-  };
-
 
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {

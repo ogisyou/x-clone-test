@@ -20,11 +20,10 @@ const TwitterShareButton = lazy(() =>
 
 // Propsのインターフェースを修正
 interface WidgetsProps {
-  uid: string; // uid をプロパティとして受け取る
   className: string; 
 }
 
-function Widgets({ uid, className }: WidgetsProps) {
+function Widgets({className }: WidgetsProps) {
   return (
     <div className={`hidden lg:block lg:flex-[0.35] border-l border-gray-700 ${className}`}>
       <div className="flex items-center bg-gray-800 p-2 rounded-2xl mt-2 ml-5">

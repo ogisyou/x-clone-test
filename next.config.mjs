@@ -2,7 +2,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  output: 'export',
   async headers() {
     return [
       {
@@ -26,6 +25,10 @@ const nextConfig = {
         permanent: true, // 永続的なリダイレクト
       },
     ];
+  },
+
+  images: {
+    domains: ['firebasestorage.googleapis.com'],
   },
 };
 

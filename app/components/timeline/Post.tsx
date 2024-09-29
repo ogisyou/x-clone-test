@@ -13,6 +13,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getAuth } from 'firebase/auth';
+import Image from 'next/image';
 
 // PostData 型を定義
 interface PostData {
@@ -90,7 +91,13 @@ const Post = forwardRef<HTMLDivElement, PostData>(
           </div>
           <p className="text-sm mb-2">{text}</p>
           {image && (
-            <img className="rounded-xl w-full" src={image} alt="投稿画像" />
+            <Image
+              className="rounded-xl "
+              src={image}
+              width={150}
+              height={150}
+              alt="投稿画像"
+            />
           )}
           <div className="flex justify-between mt-5 text-white">
             <ChatBubbleOutline className="text-base sm:text-xl" />
