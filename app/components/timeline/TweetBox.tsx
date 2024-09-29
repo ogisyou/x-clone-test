@@ -120,7 +120,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       let displayName = currentUser
         ? currentUser.displayName
         : 'ゲストユーザー'; // ゲストユーザーの場合のデフォルト
-      let userUid = currentUser ? currentUser.uid : `guest_${uid}`; // ゲストユーザーには一意のUIDを設定
+      const userUid = currentUser ? currentUser.uid : `guest_${uid}`; // ゲストユーザーには一意のUIDを設定
 
       // ゲストユーザーの場合の処理
       if (!currentUser) {
