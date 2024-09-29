@@ -41,4 +41,4 @@ function getFirebaseServices() {
   return { app, auth: auth!, db: db!, storage: storage!, provider: provider! };
 }
 
-export { auth, storage, db, getFirebaseServices };
+export { auth, storage, db, getFirebaseServices ,provider};

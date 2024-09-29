@@ -84,6 +84,10 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
 
     // 他のユーザーのプロフィールを取得
     const fetchProfile = async () => {
+      if (!db) {
+        console.error('Firestore (db) が初期化されていません');
+        return;
+      }
       try {
         const userDocRef = doc(db, 'users', uid as string);
         const docSnap = await getDoc(userDocRef);
@@ -114,7 +118,10 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
 
   const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    if (!db||!storage) {
+      console.error('Firestore (db) が初期化されていません');
+      return;
+    }
     try {
       let avatarURL = avatar;
       let displayName = currentUser
