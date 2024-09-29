@@ -51,7 +51,17 @@ const Post = forwardRef<HTMLDivElement, PostData>(
     // console.log('Post UID:', postUid);
 
     const handleDelete = async () => {
-      await deleteDoc(doc(db, 'posts', id));
+      if (!db) {
+        console.error('Firestoreが初期化されていません');
+        return;
+      }
+  
+      try {
+        await deleteDoc(doc(db, 'posts', id));
+        console.log('投稿が正常に削除されました');
+      } catch (error) {
+        console.error('投稿の削除中にエラーが発生しました:', error);
+      }
     };
 
     return (

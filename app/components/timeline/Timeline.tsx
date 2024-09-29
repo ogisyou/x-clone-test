@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import TweetBox from './TweetBox';
 import Post from './Post';
-import { db, auth } from '../../firebase'; 
-import { collection, onSnapshot, orderBy, query, where, QuerySnapshot, QueryDocumentSnapshot, FirestoreError, DocumentData, Timestamp } from 'firebase/firestore';
+import { db, auth } from '../../firebase';
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
+  QuerySnapshot,
+  QueryDocumentSnapshot,
+  FirestoreError,
+  DocumentData,
+  Timestamp,
+  Query,
+} from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import FlipMove from 'react-flip-move';
 import { useParams } from 'next/navigation';
@@ -16,7 +28,7 @@ interface PostData {
   avatar: string;
   image: string;
   uid: string;
-  timestamp: Timestamp; 
+  timestamp: Timestamp;
 }
 
 interface TimelineProps {
@@ -31,13 +43,18 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
   const { uid: profileUid } = useParams();
 
   useEffect(() => {
+    if (!auth) {
+      console.error('auth が null です');
+      setLoading(false); // ローディングを停止
+      return;
+    }
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   useEffect(() => {
     if (loading) return;
@@ -52,8 +69,13 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     console.log('URLパラメータUID (profileUid):', profileUid);
     console.log('UID (uid):', uid);
 
+    if (!db) {
+      console.error('db が null です');
+      return;
+    }
+
     const postData = collection(db, 'posts');
-    let q;
+    let q: Query<DocumentData> | null = null;
 
     if (origin === 'home') {
       q = query(
@@ -64,31 +86,37 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     } else if (origin === 'user') {
       q = query(
         postData,
-        where('profileUid', '==', profileUid), 
+        where('profileUid', '==', profileUid),
         where('uid', 'in', [profileUid, currentUser.uid]),
         orderBy('timestamp', 'desc')
       );
     }
 
     if (q) {
-      const unsubscribe = onSnapshot(q, (querySnapshot: QuerySnapshot<DocumentData>) => {
-        const allPosts = querySnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
-          id: doc.id,
-          ...doc.data() as Omit<PostData, 'id'>,
-          timestamp: doc.data().timestamp 
-        }));
-        
-        setPosts(allPosts);
-      }, (error: FirestoreError) => {
-        console.error('Firestore リスナーエラー:', error);
-      });
+      const unsubscribe = onSnapshot(
+        q,
+        (querySnapshot: QuerySnapshot<DocumentData>) => {
+          const allPosts = querySnapshot.docs.map(
+            (doc: QueryDocumentSnapshot<DocumentData>) => ({
+              id: doc.id,
+              ...(doc.data() as Omit<PostData, 'id'>),
+              timestamp: doc.data().timestamp,
+            })
+          );
+
+          setPosts(allPosts);
+        },
+        (error: FirestoreError) => {
+          console.error('Firestore リスナーエラー:', error);
+        }
+      );
 
       return () => {
         console.log('リスナー解除');
         unsubscribe();
       };
     }
-  }, [loading, currentUser, origin, profileUid, uid]);
+  }, [loading, currentUser, origin, profileUid, uid])
 
   if (loading) {
     return <div>Loading...</div>;
@@ -104,7 +132,9 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       <FlipMove>
         {posts.length > 0 ? (
           posts.map((post) => {
-            const formattedDate = post.timestamp ? post.timestamp.toDate().toLocaleString() : ''; 
+            const formattedDate = post.timestamp
+              ? post.timestamp.toDate().toLocaleString()
+              : '';
 
             return (
               <Post
@@ -117,7 +147,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
                 avatar={post.avatar}
                 image={post.image}
                 postUid={post.uid}
-                timestamp={formattedDate} 
+                timestamp={formattedDate}
               />
             );
           })

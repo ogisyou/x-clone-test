@@ -1,9 +1,8 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage"; 
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
-// 環境変数を使ってFirebaseの設定
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -13,24 +12,33 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Firebaseの初期化をクライアントサイドでのみ実行
-let app;
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+let storage: FirebaseStorage | undefined;
+let provider: GoogleAuthProvider | undefined;
+
 if (typeof window !== "undefined") {
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-    console.log("Firebase initialized:", app);
-  } else {
-    app = getApp(); // 既に初期化されている場合はそれを使用
-  }
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  provider = new GoogleAuthProvider();
 }
 
-// 初期化確認用のコンソールログ
 console.log("Firebase initialized:", app);
 
-// Firebaseの認証とデータベースのインスタンス（クライアントサイドのみ利用）
-export const auth = app ? getAuth(app) : null;
-export const db = app ? getFirestore(app) : null;
-export const storage = app ? getStorage(app) : null;
+// 型ガード関数
+function isInitialized(app: FirebaseApp | undefined): app is FirebaseApp {
+  return typeof window !== "undefined" && app !== undefined;
+}
 
-// Google認証用のプロバイダーをエクスポート（クライアントサイドのみ）
-export const provider = app ? new GoogleAuthProvider() : null;
+// Firebase サービスを取得する関数
+function getFirebaseServices() {
+  if (!isInitialized(app)) {
+    throw new Error("Firebase is not initialized");
+  }
+  return { app, auth: auth!, db: db!, storage: storage!, provider: provider! };
+}
+
+export { auth, storage, db, getFirebaseServices };
