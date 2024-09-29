@@ -5,6 +5,7 @@ import { db, auth } from '../../firebase';
 import { collection, onSnapshot, orderBy, query, where, QuerySnapshot, QueryDocumentSnapshot, FirestoreError, DocumentData } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth'; 
 import FlipMove from 'react-flip-move';
+import { useParams } from 'next/navigation';
 
 interface PostData {
   id: string;
@@ -20,13 +21,15 @@ interface PostData {
 
 interface TimelineProps {
   origin: string;
-  uid: string; 
+  uid: string;
 }
 
-const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
+
+
+const Timeline: React.FC<TimelineProps> = ({ origin,uid}) => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
-
+  const { uid: profileUid } = useParams(); 
   const signInAsGuest = async () => {
     const authInstance = getAuth();
     
@@ -78,7 +81,8 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
 
     console.log('Timelineに渡されたorigin:', origin);
     console.log('現在のログインユーザーUID:', auth.currentUser.uid);
-    console.log('URLパラメータUID (profileUid):', uid);
+    console.log('URLパラメータUID (profileUid):', profileUid);
+    console.log('UID (uid):', uid);
 
     const postData = collection(db, 'posts');
     let q;
@@ -92,9 +96,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     } else if (origin === 'user') {
       q = query(
         postData,
-        where('uid', '==', uid),
-        where('profileUid', '==', uid),
-        where('origin', '==', 'user'),
+        where('profileUid', '==', profileUid), 
         orderBy('timestamp', 'desc')
       );
     }
@@ -115,7 +117,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
         unsubscribe();
       };
     }
-  }, [origin, uid]); // currentUser を依存配列から削除
+  }, [origin, profileUid]); // currentUser を依存配列から削除
 
   return (
     <div className="flex-[1] border-b-0 border-gray-700 xl:flex-[0.45] h-full">
