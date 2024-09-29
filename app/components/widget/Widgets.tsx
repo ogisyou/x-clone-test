@@ -27,10 +27,10 @@ interface WidgetsProps {
 function Widgets({ uid, className }: WidgetsProps) {
   return (
     <div className={`hidden lg:block lg:flex-[0.35] border-l border-gray-700 ${className}`}>
-      <div className="flex items-center bg-twitter-background p-2 rounded-2xl mt-2 ml-5">
+      <div className="flex items-center bg-gray-800 p-2 rounded-2xl mt-2 ml-5">
         <Search className="text-gray-500" />
         <input
-          className="border-none bg-twitter-background w-full outline-none caret-white text-white text-lg"
+          className="border-none bg-gray-800 w-full outline-none caret-white text-white text-lg"
           placeholder="キーワード検索"
           type="text"
         />

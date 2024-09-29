@@ -65,16 +65,16 @@ function Sidebar({ username, uid, className }: SidebarProps) {
             const userData = userSnap.data();
             setCurrentUser({
               uid: authUser.uid,
-              displayName: authUser.displayName || 'Guest_User',
+              displayName: authUser.displayName || '',
               avatarURL: userData.avatarURL || '',
             });
             setAvatar(userData.avatarURL || '');
           } else {
-            setCurrentUser({ uid: authUser.uid, displayName: 'Guest_User' });
+            setCurrentUser({ uid: authUser.uid, displayName: '' });
           }
         } else {
           // ゲストユーザー
-          setCurrentUser({ uid: 'guest', displayName: 'Guest_User' });
+          setCurrentUser({ uid: 'guest', displayName: '' });
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
