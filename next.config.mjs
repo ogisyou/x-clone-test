@@ -16,7 +16,7 @@ const nextConfig = {
       },
     ];
   },
-  
+
   // ルートからログインページへのリダイレクト設定を追加
   async redirects() {
     return [

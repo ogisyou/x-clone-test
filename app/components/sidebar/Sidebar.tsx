@@ -32,7 +32,6 @@ import Link from 'next/link';
 // SidebarProps 型定義
 interface SidebarProps {
   username: string;
-  uid: string; 
   className: string; // 修正: className プロパティを追加
 }
 
@@ -44,7 +43,7 @@ interface CurrentUser {
 }
 
 // Sidebar コンポーネント
-function Sidebar({ username, uid, className }: SidebarProps) {
+function Sidebar({ username,className }: SidebarProps) {
   // 修正: className を受け取る
   const [avatar, setAvatar] = useState<string>('');
   const auth = getAuth();

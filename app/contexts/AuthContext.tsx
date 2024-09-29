@@ -37,16 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [auth, router]);
 
-  const signInAsGuest = async () => {
-    try {
-      const guestUser = await signInAnonymously(auth);
-      setIsAuth(true);
-      setUser(guestUser.user);
-      console.log('ゲストとしてサインイン:', guestUser.user.uid);
-    } catch (error) {
-      console.error('ゲストサインイン中にエラーが発生しました:', error);
-    }
-  };
+
 
   return (
     <AuthContext.Provider value={{ isAuth, setIsAuth, user, setUser, loading }}>

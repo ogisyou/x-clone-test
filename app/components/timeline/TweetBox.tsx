@@ -26,7 +26,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CardTravelIcon from '@mui/icons-material/CardTravel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import XIcon from '@mui/icons-material/X';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useBackground } from '../../contexts/BackgroundContext';
 import {
