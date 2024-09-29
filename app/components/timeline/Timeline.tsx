@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TweetBox from './TweetBox';
 import Post from './Post';
 import { db, auth } from '../../firebase'; 
-import { collection, onSnapshot, orderBy, query, where, QuerySnapshot, QueryDocumentSnapshot, FirestoreError, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, where, QuerySnapshot, QueryDocumentSnapshot, FirestoreError, DocumentData, Timestamp } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import FlipMove from 'react-flip-move';
 import { useParams } from 'next/navigation';
@@ -16,7 +16,7 @@ interface PostData {
   avatar: string;
   image: string;
   uid: string;
-  timestamp: any; 
+  timestamp: Timestamp; 
 }
 
 interface TimelineProps {
@@ -74,8 +74,10 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       const unsubscribe = onSnapshot(q, (querySnapshot: QuerySnapshot<DocumentData>) => {
         const allPosts = querySnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
           id: doc.id,
-          ...doc.data() as Omit<PostData, 'id'>
+          ...doc.data() as Omit<PostData, 'id'>,
+          timestamp: doc.data().timestamp 
         }));
+        
         setPosts(allPosts);
       }, (error: FirestoreError) => {
         console.error('Firestore リスナーエラー:', error);
@@ -102,8 +104,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       <FlipMove>
         {posts.length > 0 ? (
           posts.map((post) => {
-            const timestamp = post.timestamp?.toDate();
-            const formattedDate = timestamp ? timestamp.toLocaleString() : '';
+            const formattedDate = post.timestamp ? post.timestamp.toDate().toLocaleString() : ''; 
 
             return (
               <Post

@@ -115,4 +115,6 @@ const Post = forwardRef<HTMLDivElement, PostData>(
   }
 );
 
+Post.displayName = 'Post';
+
 export default Post;

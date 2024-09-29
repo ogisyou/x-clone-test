@@ -5,10 +5,10 @@ import { OverridableComponent } from '@mui/material/OverridableComponent';
 // プロパティの型を定義
 interface SidebarOptionProps {
   text: string;
-  Icon: OverridableComponent<SvgIconTypeMap<{}, 'svg'>>;
-  onClick?: () => void; // onClickはオプション
-  customClasses?: string; // customClassesはオプション
-  iconSize?: string; // iconSizeを追加
+  Icon: OverridableComponent<SvgIconTypeMap<unknown, 'svg'>>;
+  onClick?: () => void;
+  customClasses?: string; 
+  iconSize?: string; 
 }
 
 const SidebarOption: React.FC<SidebarOptionProps> = ({
