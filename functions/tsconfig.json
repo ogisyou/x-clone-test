@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017",
+    "skipLibCheck": true,  // 追加: 型定義のライブラリチェックをスキップ
+    "esModuleInterop": true // 追加: ESモジュールとの相互運用を有効に
+  },
+  "compileOnSave": true,
+  "include": [
+    "src"
+  ]
+}
+
