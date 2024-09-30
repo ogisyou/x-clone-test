@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getFirebaseServices } from '../firebase'; 
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextProps {
@@ -16,10 +17,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // loading 初期値を true に
-  const auth = getAuth();
   const router = useRouter();
-
+  
   useEffect(() => {
+    const { auth } = getFirebaseServices(); 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setIsAuth(true);
@@ -35,9 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, [auth, router]);
-
-
+  }, [router]);
 
   return (
     <AuthContext.Provider value={{ isAuth, setIsAuth, user, setUser, loading }}>

@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "twitter-clone-test2",
+    "default": "x-clone-test2",
     "dev": "twitter-clone-test2"
   },
   "targets": {},
