@@ -65,15 +65,11 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   return (
     <div>
       <button
-        className={`w-24 font-bold rounded-full p-1 mr-3 ${
-          isFollowing
-            ? 'bg-white text-black hover:bg-red-500 hover:text-white'
-            : 'bg-blue-500 text-white hover:bg-blue-600'
-        }`}
+        className="w-24 font-bold rounded-full p-1  mt-3 mr-3 text-black !border-white border bg-white hover:bg-gray-300"
         onClick={() => handleFollowAction(isFollowing ? 'unfollow' : 'follow')}
         disabled={isLoading}
       >
-        {isLoading ? '処理中...' : isFollowing ? 'フォロー中' : 'フォロー'}
+        {isFollowing ? 'フォロー中' : 'フォロー'}
       </button>
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
