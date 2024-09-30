@@ -12,9 +12,10 @@ const db = getFirestore();
 
 // CORS設定
 const corsOptions = {
-  origin: ["http://localhost:3000", "http://localhost:3001"], // 許可するオリジンを配列で指定
-  methods: ["POST"], // 許可するHTTPメソッド
-  allowedHeaders: ["Content-Type"], // 許可するヘッダー
+  origin: true, // すべてのオリジンを許可。本番環境では適切に制限してください。
+  methods: ["POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 };
 
 // CORSミドルウェアの初期化
@@ -22,43 +23,48 @@ const corsMiddleware = cors(corsOptions);
 
 // ユーザー削除関数
 export const deleteUser = onRequest(async (request, response) => {
-  corsMiddleware(request, response, async () => {
-    const uid = request.body.uid;
+  return new Promise((resolve) => {
+    corsMiddleware(request, response, async () => {
+      const uid = request.body.uid;
 
-    // UIDの検証
-    if (!uid) {
-      logger.error("UIDが必要です");
-      return response.status(400).send("UIDが必要です");
-    }
+      // UIDの検証
+      if (!uid) {
+        logger.error("UIDが必要です");
+        response.status(400).send("UIDが必要です");
+        return resolve();
+      }
 
-    try {
-      // Firestoreからユーザーデータを削除
-      await db.collection("users").doc(uid).delete();
-      logger.info(`ユーザーデータがFirestoreから削除されました: UID = ${uid}`);
+      try {
+        // Firestoreからユーザーデータを削除
+        await db.collection("users").doc(uid).delete();
+        logger.info(`ユーザーデータがFirestoreから削除されました: UID = ${uid}`);
 
-      // そのユーザーの投稿も削除
-      const postsSnapshot = await db.collection("posts")
-        .where("uid", "==", uid).get();
-      const batch = db.batch();
+        // そのユーザーの投稿も削除
+        const postsSnapshot = await db.collection("posts")
+          .where("uid", "==", uid).get();
+        const batch = db.batch();
 
-      postsSnapshot.docs.forEach((doc) => {
-        logger.info(`投稿を削除します: UID = ${uid}, 投稿ID = ${doc.id}`);
-        batch.delete(doc.ref);
-      });
+        postsSnapshot.docs.forEach((doc) => {
+          logger.info(`投稿を削除します: UID = ${uid}, 投稿ID = ${doc.id}`);
+          batch.delete(doc.ref);
+        });
 
-      await batch.commit();
-      logger.info(`ユーザーの全投稿が削除されました: UID = ${uid}`);
+        await batch.commit();
+        logger.info(`ユーザーの全投稿が削除されました: UID = ${uid}`);
 
-      // Firebase Authからユーザーを削除
-      await admin.auth().deleteUser(uid);
-      logger.info(`ユーザーがFirebase Authから削除されました: UID = ${uid}`);
+        // Firebase Authからユーザーを削除
+        await admin.auth().deleteUser(uid);
+        logger.info(`ユーザーがFirebase Authから削除されました: UID = ${uid}`);
 
-      return response.status(200).send(`ユーザーが正常に削除されました: UID = ${uid}`);
-    } catch (error: unknown) {
-      // エラーハンドリング
-      const errorMessage = error instanceof Error ? error.message : "不明なエラー";
-      logger.error(`ユーザー削除エラー: ${errorMessage}`);
-      return response.status(500).send(`ユーザー削除エラー: ${errorMessage}`);
-    }
+        response.status(200).send(`ユーザーが正常に削除されました: UID = ${uid}`);
+        return resolve();
+      } catch (error: unknown) {
+        // エラーハンドリング
+        const errorMessage = error instanceof Error ? error.message : "不明なエラー";
+        logger.error(`ユーザー削除エラー: ${errorMessage}`);
+        response.status(500).send(`ユーザー削除エラー: ${errorMessage}`);
+        return resolve();
+      }
+    });
   });
 });
