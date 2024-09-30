@@ -54,7 +54,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     });
 
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
   useEffect(() => {
     if (loading) return;
