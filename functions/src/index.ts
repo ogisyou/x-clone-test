@@ -1,8 +1,8 @@
-import cors from "cors"; // 修正: デフォルトインポートを使用
+import cors from "cors";
 import * as admin from "firebase-admin";
-import { getFirestore } from "firebase-admin/firestore";
-import { onRequest } from "firebase-functions/v2/https";
-import { logger } from "firebase-functions";
+import {getFirestore} from "firebase-admin/firestore";
+import {onRequest} from "firebase-functions/v2/https";
+import {logger} from "firebase-functions";
 
 // Firebase Admin SDKの初期化
 admin.initializeApp();
@@ -13,9 +13,11 @@ const db = getFirestore();
 // CORS設定
 const corsOptions = {
   origin: ["http://localhost:3000", "http://localhost:3001"], // 許可するオリジンを配列で指定
+  methods: ["POST"], // 許可するHTTPメソッド
+  allowedHeaders: ["Content-Type"], // 許可するヘッダー
 };
 
-// CORSミドルウェアを設定
+// CORSミドルウェアの初期化
 const corsMiddleware = cors(corsOptions);
 
 // ユーザー削除関数
@@ -23,6 +25,7 @@ export const deleteUser = onRequest(async (request, response) => {
   corsMiddleware(request, response, async () => {
     const uid = request.body.uid;
 
+    // UIDの検証
     if (!uid) {
       logger.error("UIDが必要です");
       return response.status(400).send("UIDが必要です");
@@ -52,13 +55,10 @@ export const deleteUser = onRequest(async (request, response) => {
 
       return response.status(200).send(`ユーザーが正常に削除されました: UID = ${uid}`);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        logger.error(`ユーザー削除エラー: ${error.message}`);
-        return response.status(500).send(`ユーザー削除エラー: ${error.message}`);
-      } else {
-        logger.error("ユーザー削除エラー: 不明なエラー");
-        return response.status(500).send("ユーザー削除エラー: 不明なエラー");
-      }
+      // エラーハンドリング
+      const errorMessage = error instanceof Error ? error.message : "不明なエラー";
+      logger.error(`ユーザー削除エラー: ${errorMessage}`);
+      return response.status(500).send(`ユーザー削除エラー: ${errorMessage}`);
     }
   });
 });
