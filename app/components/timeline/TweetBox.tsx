@@ -28,7 +28,6 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import XIcon from '@mui/icons-material/X';
 import { useParams, useRouter } from 'next/navigation';
 import { useAvatar } from '../../contexts/AvatarContext';
-import { useBackground } from '../../contexts/BackgroundContext';
 import {
   collection,
   addDoc,
@@ -57,7 +56,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const { uid } = useParams(); // useParams() で URL パラメータから uid 
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
-  const { backgroundURLs } = useBackground();
   const [tweetMessage, setTweetMessage] = useState<string>('');
   const [tweetImage, setTweetImage] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState<string>('');
@@ -75,6 +73,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     birthplace: '',
     birthDate: '',
   });
+  const [backgroundURL, setBackgroundURL] = useState<string>('');
 
   useEffect(() => {
     // ログインしているユーザーのUIDを設定
@@ -105,6 +104,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
           });
           setFollowingCount(userData.following ? userData.following.length : 0);
           setFollowersCount(userData.followers ? userData.followers.length : 0);
+          setBackgroundURL(userData.backgroundURL || '');
         } else {
           console.log('プロフィールデータが見つかりません');
         }
@@ -226,7 +226,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       <div
         className="w-full h-52 bg-gray-800"
         style={{
-          backgroundImage: `url(${backgroundURLs[0] || ''})`, // 最初の背景URLを使用
+          backgroundImage: `url(${backgroundURL || ''})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
