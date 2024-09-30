@@ -1,61 +1,55 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import Search from '@mui/icons-material/Search';
+import dynamic from 'next/dynamic';
 
-// Twitter Embed の lazy import
-const TwitterTweetEmbed = lazy(() =>
-  import('react-twitter-embed').then((module) => ({
-    default: module.TwitterTweetEmbed,
-  }))
-);
-const TwitterTimelineEmbed = lazy(() =>
-  import('react-twitter-embed').then((module) => ({
-    default: module.TwitterTimelineEmbed,
-  }))
-);
-const TwitterShareButton = lazy(() =>
-  import('react-twitter-embed').then((module) => ({
-    default: module.TwitterShareButton,
-  }))
+const TwitterTweetEmbed = dynamic(
+  () => import('react-twitter-embed').then((mod) => mod.TwitterTweetEmbed),
+  { ssr: false }
 );
 
-// Propsのインターフェースを修正
+const TwitterTimelineEmbed = dynamic(
+  () => import('react-twitter-embed').then((mod) => mod.TwitterTimelineEmbed),
+  { ssr: false }
+);
+
+const TwitterShareButton = dynamic(
+  () => import('react-twitter-embed').then((mod) => mod.TwitterShareButton),
+  { ssr: false }
+);
+
 interface WidgetsProps {
-  className: string; 
+  className: string;
 }
 
-function Widgets({className }: WidgetsProps) {
+const Widgets: React.FC<WidgetsProps> = ({ className }) => {
   return (
-    <div className={`hidden lg:block lg:flex-[0.35] border-l border-gray-700 ${className}`}>
-      <div className="flex items-center bg-gray-800 p-2 rounded-2xl mt-2 ml-5">
-        <Search className="text-gray-500" />
+    <div className={className}>
+      <div className="flex items-center space-x-2 bg-gray-100 p-3 rounded-full mt-2 mb-4">
+        <Search className="text-gray-400" />
         <input
-          className="border-none bg-gray-800 w-full outline-none caret-white text-white text-lg"
-          placeholder="キーワード検索"
           type="text"
+          placeholder="キーワード検索"
+          className="flex-1 outline-none bg-transparent"
         />
       </div>
 
-      <div className="mt-2 ml-5 p-5 pt-1 bg-black rounded-2xl">
-        <h2 className="text-lg font-extrabold">いまどうしてる？</h2>
-        <div style={{ marginBottom: '5px', height: '400px', overflow: 'auto' }}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <TwitterTweetEmbed tweetId={'1824252296852804056'} />
-          </Suspense>
-        </div>
-        <Suspense fallback={<div>Loading...</div>}>
-          <TwitterTimelineEmbed
-            sourceType="profile"
-            screenName="tenkijp"
-            options={{ height: 400 }}
-          />
-          <TwitterShareButton
-            url={'https://x.com/tenkijp'}
-            options={{ text: '#Sample', via: 'tenkijp' }}
-          />
-        </Suspense>
-      </div>
+      <React.Suspense fallback={<div>Loading tweet...</div>}>
+        <TwitterTweetEmbed tweetId={'1824252296852804056'} />
+      </React.Suspense>
+
+      <React.Suspense fallback={<div>Loading timeline...</div>}>
+        <TwitterTimelineEmbed
+          sourceType="profile"
+          screenName="elonmusk"
+          options={{ height: 400 }}
+        />
+      </React.Suspense>
+
+      <React.Suspense fallback={<div>Loading share button...</div>}>
+        <TwitterShareButton url={'https://twitter.com'} options={{ text: 'Hello World!' }} />
+      </React.Suspense>
     </div>
   );
-}
+};
 
 export default Widgets;
