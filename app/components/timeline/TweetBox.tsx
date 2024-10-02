@@ -281,15 +281,15 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
             <div className="flex text-gray-400 mt-3">
               <Link
                 href={`/recommended/${uid}/recommended`}
-                className="mr-5 hover:border-b"
+                className="mr-5 hover:border-b "
               >
                 おすすめのユーザー
               </Link>
               <Link
                 href={`/following/${uid}/following`}
-                className="mr-5 hover:border-b"
+                className="mr-5 hover:border-b "
               >
-                <span className="mr-1 text-white">{followingCount}</span>
+                <span className="mr-1 text-white ">{followingCount}</span>
                 フォロー中
               </Link>
               <Link

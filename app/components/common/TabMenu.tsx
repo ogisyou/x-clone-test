@@ -29,7 +29,7 @@ const TabMenu: React.FC<TabMenuProps> = ({ tabs }) => {
     <div key={t.name} className="relative flex-grow ">
       <Link
         href={getTabUrl(t.name)}
-        className={`block  p-3  text-gray-400 hover:bg-gray-800 text-center cursor-pointer text-sm sm:text-base ${
+        className={`block  p-3  text-gray-400 hover:bg-gray-800 text-center cursor-pointer font-bold text-xs sm:text-base ${
           currentTab === t.name ? 'text-white' : ''
         }`}
       >
