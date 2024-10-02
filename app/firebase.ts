@@ -18,15 +18,20 @@ let db: Firestore | undefined;
 let storage: FirebaseStorage | undefined;
 let provider: GoogleAuthProvider | undefined;
 
-if (typeof window !== "undefined") {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  auth = getAuth(app);
-  db = getFirestore(app);
-  storage = getStorage(app);
-  provider = new GoogleAuthProvider();
+try {
+  if (typeof window !== "undefined") {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+    provider = new GoogleAuthProvider();
+    console.log("Firebaseの初期化が完了しました:", !!app);
+  } else {
+    console.log("Firebaseの初期化をスキップしました（サーバーサイド）");
+  }
+} catch (error) {
+  console.error("Firebaseの初期化中にエラーが発生しました:", error);
 }
-
-console.log("Firebase initialized:", app);
 
 // 型ガード関数
 function isInitialized(app: FirebaseApp | undefined): app is FirebaseApp {
@@ -36,9 +41,9 @@ function isInitialized(app: FirebaseApp | undefined): app is FirebaseApp {
 // Firebase サービスを取得する関数
 function getFirebaseServices() {
   if (!isInitialized(app)) {
-    throw new Error("Firebase is not initialized");
+    throw new Error("Firebaseが初期化されていません");
   }
   return { app, auth: auth!, db: db!, storage: storage!, provider: provider! };
 }
 
-export { auth, storage, db, getFirebaseServices ,provider};
+export { auth, storage, db, getFirebaseServices, provider };
