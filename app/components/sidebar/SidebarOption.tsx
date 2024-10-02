@@ -20,7 +20,7 @@ const SidebarOption: React.FC<SidebarOptionProps> = ({
 }) => {
   return (
     <div
-      className="flex items-center cursor-pointer ml-5 my-2 hover:bg-gray-700 rounded-full p-3"
+      className="flex items-center cursor-pointer ml-5 my-1 sm:my-2 hover:bg-gray-700 rounded-full p-3"
       onClick={onClick}
     >
       <Icon className={`${iconSize}`} /> 

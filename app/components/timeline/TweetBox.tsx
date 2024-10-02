@@ -53,7 +53,7 @@ interface TweetBoxProps {
 const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const auth = getAuth();
   const router = useRouter();
-  const { uid } = useParams(); // useParams() で URL パラメータから uid 
+  const { uid } = useParams(); // useParams() で URL パラメータから uid
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
   const [tweetMessage, setTweetMessage] = useState<string>('');
@@ -118,7 +118,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
 
   const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!db||!storage) {
+    if (!db || !storage) {
       console.error('Firestore (db) が初期化されていません');
       return;
     }
@@ -203,14 +203,10 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
       console.error('Logout error:', error);
     }
   };
-  
-  
 
   const handleOpenDialog = () => {
     setOpenLogoutDialog(true);
   };
-
-
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -346,7 +342,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
             variant="contained"
             color="primary"
             type="submit"
-            className="custom-button !bg-blue-400 !text-xs mt-1 sm:!text-sm sm:!mt-2 sm:!w-32 sm:!px-7"
+            className="custom-button !bg-blue-400 !text-xs !mt-2 sm:!text-sm sm:!mt-2 sm:!w-32 sm:!px-7"
           >
             ポストする
           </Button>
@@ -365,16 +361,15 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
           },
         }}
       >
-        <div className="w-60 h-full p-4 bg-black text-white border-r-4 border-gray-700">
+        <div className="w-60 h-full p-4 bg-black text-white border-r-4 border-gray-700 ">
           <div className="flex flex-col mt-1">
             <SidebarOption
-              text={currentUser?.displayName || 'Gest_User'} 
+              text={currentUser?.displayName || 'Gest_User'}
               Icon={XIcon}
               onClick={() => {
                 toggleDrawer(false); // ドロワーを閉じる
                 router.push(`/home/${currentUser?.uid || 'guest'}`);
               }}
-              
               customClasses="text-blue-400 text-xl"
             />
             <SidebarOption text="プロフィール" Icon={PermIdentityIcon} />
