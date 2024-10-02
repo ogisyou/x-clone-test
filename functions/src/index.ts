@@ -49,7 +49,7 @@ const auth = admin.auth();
 
 // CORS設定
 const corsHandler = cors({
-  origin: true, 
+  origin: true,
   credentials: true,
 });
 
