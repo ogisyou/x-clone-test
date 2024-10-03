@@ -53,7 +53,7 @@ interface TweetBoxProps {
 const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const auth = getAuth();
   const router = useRouter();
-  const { uid } = useParams(); // useParams() で URL パラメータから uid
+  const { uid } = useParams();
   const currentUser = auth.currentUser;
   const { avatar, setAvatar } = useAvatar();
   const [tweetMessage, setTweetMessage] = useState<string>('');
@@ -76,12 +76,10 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const [backgroundURL, setBackgroundURL] = useState<string>('');
 
   useEffect(() => {
-    // ログインしているユーザーのUIDを設定
     if (currentUser) {
       setCurrentUid(currentUser.uid);
     }
 
-    // 他のユーザーのプロフィールを取得
     const fetchProfile = async () => {
       if (!db) {
         console.error('Firestore (db) が初期化されていません');
@@ -124,38 +122,30 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     }
     try {
       let avatarURL = avatar;
-      let displayName = currentUser
-        ? currentUser.displayName
-        : 'ゲストユーザー'; // ゲストユーザーの場合のデフォルト
-      const userUid = currentUser ? currentUser.uid : `guest_${uid}`; // ゲストユーザーには一意のUIDを設定
+      let tweetDisplayName = '';
+      let tweetUsername = '';
+      const userUid = currentUser ? currentUser.uid : `guest_${uid}`;
 
-      // ゲストユーザーの場合の処理
       if (!currentUser) {
-        avatarURL = avatar || ''; // デフォルトのアバターまたは空の文字列
+        avatarURL = avatar || '';
+        tweetDisplayName = 'ゲストユーザー';
+        const uidString = Array.isArray(uid) ? uid[0] : uid || '';
+        tweetUsername = `guest_${uidString.substring(0, 5)}`;
         console.log('ユーザーが認証されていません');
       } else {
-        // ログイン済みユーザーの情報をFirestoreから取得
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userDocRef);
 
         if (userSnap.exists()) {
           const userData = userSnap.data();
-          avatarURL = userData.avatarURL || ''; // ユーザーのアバターURLを取得、存在しない場合は空文字
-          displayName = userData.displayName || currentUser.displayName;
+          avatarURL = userData.avatarURL || '';
+          tweetDisplayName = userData.displayName || currentUser.displayName || '';
+          tweetUsername = userData.username || '';
         } else {
           console.log('ユーザー情報が見つかりません');
         }
       }
 
-      // アバター画像が変更された場合のアップロード処理
-      if (selectedFile) {
-        const uniqueFileName = `${Date.now()}_${selectedFile.name}`;
-        const storageRef = ref(storage, `avatars/${uniqueFileName}`);
-        await uploadBytes(storageRef, selectedFile);
-        avatarURL = await getDownloadURL(storageRef);
-      }
-
-      // 画像が選択されている場合はアップロード
       let tweetImageUrl = '';
       if (tweetImage) {
         const uniqueImageName = `${Date.now()}_${tweetImage.name}`;
@@ -164,21 +154,19 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
         tweetImageUrl = await getDownloadURL(imageRef);
       }
 
-      // Firestoreに投稿データを追加
       await addDoc(collection(db, 'posts'), {
-        displayName: displayName,
-        username: displayName, // ゲストユーザーの場合のユーザー名
-        verified: !!currentUser, // ログイン済みユーザーの場合は認証済み
+        displayName: tweetDisplayName,
+        username: tweetUsername,
+        verified: !!currentUser,
         text: tweetMessage,
         avatar: avatarURL,
         image: tweetImageUrl,
         timestamp: serverTimestamp(),
-        uid: userUid, // ログインしているユーザーまたはゲストのUID
-        profileUid: uid, // URLパラメータから取得したUID
-        origin: origin, // origin情報を保持
+        uid: userUid,
+        profileUid: uid,
+        origin: origin,
       });
 
-      // 投稿後のリセット
       setTweetMessage('');
       setTweetImage(null);
       setSelectedFile(null);
@@ -194,8 +182,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // ユーザーがログアウトした後にリスナーを解除
-
       localStorage.removeItem('isAuth');
       localStorage.removeItem('uid');
       router.push('/login');
@@ -213,9 +199,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
     setTweetImage(file);
     event.target.value = '';
   };
-
-  /* デバッグログを追加 */
-  // console.log('Current UID:', currentUid, 'URL取得 UID:', uid);
 
   return (
     <div className="relative px-4 py-2 border-b-8 border-gray-700">
@@ -240,7 +223,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
           <Link
             href={{
               pathname: `/profile/${uid}`,
-              query: { background: JSON.stringify(location) }, // クエリパラメータとして location を渡す
+              query: { background: JSON.stringify(location) },
             }}
             className="text-white p-2 rounded-3xl border hover:bg-gray-700 bg-black font-bold"
           >
@@ -349,7 +332,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
         </div>
       </form>
 
-      {/* ドロワー */}
       <Drawer
         anchor="left"
         className="block sm:hidden"
@@ -367,7 +349,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
               text={currentUser?.displayName || 'Gest_User'}
               Icon={XIcon}
               onClick={() => {
-                toggleDrawer(false); // ドロワーを閉じる
+                toggleDrawer(false);
                 router.push(`/home/${currentUser?.uid || 'guest'}`);
               }}
               customClasses="text-blue-400 text-xl"
@@ -390,7 +372,6 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
         </div>
       </Drawer>
 
-      {/* ログアウト確認ダイアログ */}
       <Dialog
         open={openLogoutDialog}
         onClose={() => setOpenLogoutDialog(false)}

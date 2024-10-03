@@ -128,7 +128,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
   }
 
   return (
-    <div className="flex-[1] border-b-0 border-gray-700 xl:flex-[0.45] h-full">
+    <div className="flex-[1] border-b-0 border-gray-700 xl:flex-[0.6] h-full">
       <TweetBox origin={origin} />
       <FlipMove>
         {posts.length > 0 ? (

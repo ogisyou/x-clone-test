@@ -24,7 +24,7 @@ interface WidgetsProps {
 const Widgets: React.FC<WidgetsProps> = ({ className }) => {
   return (
     <div className={className}>
-      <div className="flex items-center space-x-2 bg-gray-100 p-3 rounded-full mt-2 mb-4">
+      <div className="flex items-center space-x-2 bg-gray-800 p-3 rounded-full mt-2 mb-4">
         <Search className="text-gray-400" />
         <input
           type="text"
@@ -34,13 +34,14 @@ const Widgets: React.FC<WidgetsProps> = ({ className }) => {
       </div>
 
       <React.Suspense fallback={<div>Loading tweet...</div>}>
-        <TwitterTweetEmbed tweetId={'1824252296852804056'} />
+        <TwitterTweetEmbed tweetId={'1841669403131445742'} />
+        
       </React.Suspense>
 
       <React.Suspense fallback={<div>Loading timeline...</div>}>
         <TwitterTimelineEmbed
           sourceType="profile"
-          screenName="elonmusk"
+          screenName="GUser202464"
           options={{ height: 400 }}
         />
       </React.Suspense>
