@@ -60,7 +60,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
   const [tweetImage, setTweetImage] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState<string>('');
   const [username, setUsername] = useState<string>('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
   const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
   const [followingCount, setFollowingCount] = useState<number>(0);
@@ -169,7 +169,7 @@ const TweetBox: React.FC<TweetBoxProps> = ({ origin }) => {
 
       setTweetMessage('');
       setTweetImage(null);
-      setSelectedFile(null);
+
     } catch (error) {
       console.error('投稿中にエラーが発生しました:', error);
     }
