@@ -24,5 +24,9 @@ module.exports = {
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  roots: ['<rootDir>'],
+  modulePaths: ['<rootDir>'],
+  moduleDirectories: ['node_modules', '<rootDir>'],
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)']
 };
