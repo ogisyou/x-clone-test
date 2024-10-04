@@ -4,11 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run build:functions && firebase deploy --only functions",
     "build:functions": "cd functions && npm run build",
-    "deploy:functions": "firebase deploy --only functions",
-    "predeploy": "npm run build && npm run build:functions && npm run deploy:functions",
-    "deploy": "vercel deploy --prod",
     "start": "next start",
     "lint": "next lint"
   },
