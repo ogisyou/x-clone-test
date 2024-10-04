@@ -6,6 +6,15 @@
 
 import '@testing-library/jest-dom';
 
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+      // Add other custom matchers from @testing-library/jest-dom as needed
+    }
+  }
+}
+
 declare namespace NodeJS {
   interface ProcessEnv {
     readonly NODE_ENV: 'development' | 'production' | 'test';
@@ -73,3 +82,5 @@ declare module '*.module.sass' {
   const classes: { readonly [key: string]: string };
   export default classes;
 }
+
+export {};
