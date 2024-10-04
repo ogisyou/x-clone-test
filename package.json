@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && npm run build:functions && firebase deploy --only functions",
+    "build": "next build",
     "build:functions": "cd functions && npm run build",
+    "deploy:functions": "firebase deploy --only functions",
     "start": "next start",
     "lint": "next lint"
   },

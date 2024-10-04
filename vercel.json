@@ -1,10 +1,10 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build && npm run build:functions",
   "outputDirectory": ".next",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://deleteuser-uwusxlphma-uc.a.run.app/"
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/deleteUser/$1"
     }
   ]
 }
