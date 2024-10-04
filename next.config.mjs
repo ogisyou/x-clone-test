@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  swcMinify: true,
+  experimental: {
+    forceSwcTransforms: true,
+  },
   async headers() {
     return [
       {
@@ -14,7 +18,6 @@ const nextConfig = {
       },
     ];
   },
-
   async redirects() {
     return [
       {
@@ -24,11 +27,9 @@ const nextConfig = {
       },
     ];
   },
-
   images: {
     domains: ['firebasestorage.googleapis.com'],
   },
-
   // webpack設定を追加
   webpack: (config, { isServer }) => {
     if (!isServer) {
