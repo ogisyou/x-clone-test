@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://deleteuser-uwusxlphma-uc.a.run.app/"
+    }
+  ]
+}

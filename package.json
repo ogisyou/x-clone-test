@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "export": "next export",
-    "deploy": "next build && firebase deploy",
+    "build:functions": "cd functions && npm run build",
+    "deploy:functions": "firebase deploy --only functions",
+    "predeploy": "npm run build && npm run build:functions && npm run deploy:functions",
+    "deploy": "vercel deploy --prod",
     "start": "next start",
     "lint": "next lint"
   },
