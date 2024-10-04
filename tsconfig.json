@@ -1,12 +1,7 @@
 {
   "compilerOptions": {
-    "types": ["jest", "@testing-library/jest-dom", "node"],
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,23 +19,21 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ],
+    "types": ["node", "jest", "@testing-library/jest-dom", "react", "react-dom"]
   },
   "include": [
-    "app/**/*.ts",
-    "app/**/*.tsx",
     "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
     ".next/types/**/*.ts",
-    "build/types/**/*.ts",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "jest.config.js",
-    "jest.setup.js"
+    "types/**/*.d.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
