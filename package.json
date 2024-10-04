@@ -8,7 +8,9 @@
     "build:functions": "cd functions && npm run build",
     "deploy:functions": "firebase deploy --only functions",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
