@@ -4,8 +4,32 @@
   "outputDirectory": ".next",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/deleteUser/$1"
+      "source": "/api/home/:uid",
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/home"
+    },
+    {
+      "source": "/api/profile/:uid",
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/profile"
+    },
+    {
+      "source": "/api/followers/:uid",
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/followers"
+    },
+    {
+      "source": "/api/following/:uid",
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/following"
+    },
+    {
+      "source": "/api/recommended/:uid",
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/recommended"
+    },
+    {
+      "source": "/api/user/:uid",
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/user"
+    },
+    {
+      "source": "/api/deleteUser/:uid",
+      "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/deleteUser"
     },
     {
       "source": "/((?!_next/|static/).*)",
