@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Notify on Push
+        run: echo "ワークフローが git push によってトリガーされました！"
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
