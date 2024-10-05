@@ -32,6 +32,9 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Build Next.js app
         run: npm run build:next
         env:
@@ -43,7 +46,6 @@ jobs:
       - name: Show Next.js build logs
         run: cat .next/build-manifest.json
 
-      # Functions のビルドと配置を改善
       - name: Install and Build Functions
         run: |
           cd functions
@@ -51,21 +53,25 @@ jobs:
           npm run build
           cp -r lib/* .
 
-      # Firebase Functions のデプロイ
       - name: Deploy Firebase Functions
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only functions --project default
+          args: deploy --only functions --project ${{ secrets.FIREBASE_PROJECT_ID }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      # Functions URL の取得と vercel.json の更新
       - name: Update vercel.json with Functions URL
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production)
-          sed -i 's|https://us-central1-x-clone-test2.cloudfunctions.net|'$FUNCTIONS_URL'|g' vercel.json
+          FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production --token "$FIREBASE_TOKEN") || echo "Failed to get Functions URL"
+          echo "Functions URL: $FUNCTIONS_URL"
+          if [ -n "$FUNCTIONS_URL" ]; then
+            sed -i 's|https://us-central1-x-clone-test2.cloudfunctions.net|'$FUNCTIONS_URL'|g' vercel.json
+          else
+            echo "Warning: Failed to update vercel.json with Functions URL"
+          fi
 
-      # Vercel へのデプロイ
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -78,7 +84,6 @@ jobs:
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイメントURL: $DEPLOYMENT_URL"
 
-      # より詳細なデプロイメントチェック
       - name: Detailed deployment check
         run: |
           if [ -z "$DEPLOYMENT_URL" ]; then
@@ -90,7 +95,6 @@ jobs:
           echo "HTTP ステータスコード: $HTTP_STATUS"
           if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
-            # 追加のチェック（例：特定のコンテンツの存在確認）
             CONTENT=$(curl -s $DEPLOYMENT_URL)
             if echo "$CONTENT" | grep -q "期待される文字列"; then
               echo "コンテンツの確認が成功しました"
