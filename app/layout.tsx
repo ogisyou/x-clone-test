@@ -1,54 +1,27 @@
 // app/layout.tsx
 'use client';
 
-import React, { useEffect } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import React from 'react';
+import { AuthProvider } from './contexts/AuthContext';
 import { AvatarProvider } from './contexts/AvatarContext';
-import { BackgroundProvider } from './contexts/BackgroundContext'; 
+import { BackgroundProvider } from './contexts/BackgroundContext';
+import AuthWrapper from '@/app/components/AuthWrapper'; 
 import './globals.css';
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-
-
-  const { setIsAuth, setUser } = useAuth();
-
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'isAuth') {
-        setIsAuth(event.newValue === 'true');
-      } else if (event.key === 'user') {
-        if (event.newValue) {
-          setUser(JSON.parse(event.newValue));
-        } else {
-          setUser(null);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [setIsAuth, setUser]);
-
+const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <html lang="ja">
       <body>
-        {children}
+        <AuthProvider>
+          <AvatarProvider>
+            <BackgroundProvider>
+              <AuthWrapper>{children}</AuthWrapper>
+            </BackgroundProvider>
+          </AvatarProvider>
+        </AuthProvider>
       </body>
     </html>
   );
 };
 
-const App = ({ children }: { children: React.ReactNode }) => (
-  <AuthProvider>
-    <AvatarProvider>
-      <BackgroundProvider> 
-        <Layout>{children}</Layout>
-      </BackgroundProvider>
-    </AvatarProvider>
-  </AuthProvider>
-);
-
-export default App;
+export default RootLayout;
