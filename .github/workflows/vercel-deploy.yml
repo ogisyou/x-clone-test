@@ -33,9 +33,15 @@ jobs:
         run: npm ci
 
       - name: Build Next.js app
-        run: npm run build
+        run: npm run build:next
         env:
           CI: true
+
+      - name: List build output
+        run: ls -R .next
+     
+      - name: Show Next.js build logs
+        run: cat .next/build-manifest.json
 
       - name: Install Functions dependencies
         run: |
@@ -43,9 +49,7 @@ jobs:
           npm ci
 
       - name: Build Functions
-        run: |
-          cd functions
-          npm run build:functions
+        run: npm run build:functions
 
       - name: Deploy Firebase Functions
         uses: w9jds/firebase-action@master
@@ -62,12 +66,11 @@ jobs:
         run: |
           npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
           npx vercel build --prod --token $VERCEL_TOKEN
-          npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN
+          DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          echo "デプロイメントURL: $DEPLOYMENT_URL"
 
       - name: Check deployment
         run: |
-          DEPLOYMENT_URL=$(npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }})
-          echo "デプロイメントURL: $DEPLOYMENT_URL"
           HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" $DEPLOYMENT_URL)
           if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
