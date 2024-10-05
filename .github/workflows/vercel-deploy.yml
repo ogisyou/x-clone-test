@@ -18,9 +18,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Notify on Push
-        run: echo "ワークフローが git push によってトリガーされました！"
-
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -40,12 +37,6 @@ jobs:
         env:
           CI: true
 
-      - name: List build output
-        run: ls -R .next
-     
-      - name: Show Next.js build logs
-        run: cat .next/build-manifest.json
-
       - name: Install and Build Functions
         run: |
           cd functions
@@ -53,10 +44,17 @@ jobs:
           npm run build
           cp -r lib/* .
 
+      - name: Debug Firebase config
+        run: |
+          echo "Firebase project list:"
+          firebase projects:list --token "${{ secrets.FIREBASE_TOKEN }}"
+          echo "Current project config:"
+          firebase use --token "${{ secrets.FIREBASE_TOKEN }}"
+
       - name: Deploy Firebase Functions
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only functions --project ${{ secrets.FIREBASE_PROJECT_ID }}
+          args: deploy --only functions --project x-clone-test2
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
@@ -64,10 +62,10 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production --token "$FIREBASE_TOKEN") || echo "Failed to get Functions URL"
+          FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production --project x-clone-test2 --token "$FIREBASE_TOKEN") || echo "Failed to get Functions URL"
           echo "Functions URL: $FUNCTIONS_URL"
           if [ -n "$FUNCTIONS_URL" ]; then
-            sed -i 's|https://us-central1-x-clone-test2.cloudfunctions.net|'$FUNCTIONS_URL'|g' vercel.json
+            sed -i 's|https://us-central1-x-clone-test2.cloudfunctions.net|'"$FUNCTIONS_URL"'|g' vercel.json
           else
             echo "Warning: Failed to update vercel.json with Functions URL"
           fi
@@ -84,7 +82,7 @@ jobs:
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイメントURL: $DEPLOYMENT_URL"
 
-      - name: Detailed deployment check
+      - name: Deployment check
         run: |
           if [ -z "$DEPLOYMENT_URL" ]; then
             echo "エラー: デプロイメントURLが設定されていません"
@@ -95,13 +93,6 @@ jobs:
           echo "HTTP ステータスコード: $HTTP_STATUS"
           if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
-            CONTENT=$(curl -s $DEPLOYMENT_URL)
-            if echo "$CONTENT" | grep -q "期待される文字列"; then
-              echo "コンテンツの確認が成功しました"
-            else
-              echo "コンテンツの確認に失敗しました"
-              exit 1
-            fi
           else
             echo "デプロイメントが失敗しました。ステータスコード: $HTTP_STATUS"
             exit 1
