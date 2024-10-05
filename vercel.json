@@ -9,21 +9,7 @@
     },
     {
       "source": "/((?!_next/|static/).*)",
-      "destination": "/index.html"
-    }
-  ],
-  "routes": [
-    {
-      "src": "^/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "^/favicon.ico",
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "/_next/(.*)",
-      "dest": "/_next/$1"
+      "destination": "/$1"
     }
   ]
 }
