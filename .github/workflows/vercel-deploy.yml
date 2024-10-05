@@ -69,15 +69,25 @@ jobs:
       - name: Deploy Firebase Functions
         run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
+      - name: Get Functions URL
+        run: |
+          FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}") || echo "Failed to get Functions URL"
+          echo "Functions URL: $FUNCTIONS_URL"
+          echo "FUNCTIONS_URL=$FUNCTIONS_URL" >> $GITHUB_ENV
+
+      - name: Debug vercel.json before update
+        run: cat vercel.json
+
       - name: Update vercel.json with Functions URL
         run: |
-          FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production --token "${{ secrets.FIREBASE_TOKEN }}") || echo "Failed to get Functions URL"
-          echo "Functions URL: $FUNCTIONS_URL"
           if [ -n "$FUNCTIONS_URL" ]; then
-            sed -i 's|https://us-central1-${{ secrets.MY_FIREBASE_PROJECT_ID }}.cloudfunctions.net|'"$FUNCTIONS_URL"'|g' vercel.json
+            sed -i 's|https://us-central1-'"${{ secrets.MY_FIREBASE_PROJECT_ID }}"'.cloudfunctions.net/deleteUser|'"$FUNCTIONS_URL"'|g' vercel.json
           else
             echo "Warning: Failed to update vercel.json with Functions URL"
           fi
+
+      - name: Debug vercel.json after update
+        run: cat vercel.json
 
       - name: Deploy to Vercel
         env:
