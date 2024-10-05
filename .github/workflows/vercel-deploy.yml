@@ -34,6 +34,8 @@ jobs:
 
       - name: Build Next.js app
         run: npm run build
+        env:
+          CI: true
 
       - name: Install Functions dependencies
         run: |
@@ -58,4 +60,11 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          npx vercel --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --confirm --prod
+          npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
+          npx vercel build --prod --token $VERCEL_TOKEN
+          npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN
+
+      - name: Check deployment
+        run: |
+          DEPLOYMENT_URL=$(npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }})
+          curl -sSf $DEPLOYMENT_URL || (echo "Deployment failed" && exit 1)
