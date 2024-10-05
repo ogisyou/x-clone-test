@@ -67,11 +67,18 @@ jobs:
           npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
           npx vercel build --prod --token $VERCEL_TOKEN
           DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイメントURL: $DEPLOYMENT_URL"
 
       - name: Check deployment
         run: |
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "エラー: デプロイメントURLが設定されていません"
+            exit 1
+          fi
+          echo "チェックするURL: $DEPLOYMENT_URL"
           HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" $DEPLOYMENT_URL)
+          echo "HTTP ステータスコード: $HTTP_STATUS"
           if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
           else
