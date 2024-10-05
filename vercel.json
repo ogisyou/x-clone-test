@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "buildCommand": "npm run build && npm run build:functions",
   "outputDirectory": ".next",
   "rewrites": [
@@ -7,8 +8,22 @@
       "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/deleteUser/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/$1"
+      "source": "/((?!_next/|static/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "^/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/_next/(.*)",
+      "dest": "/_next/$1"
     }
   ]
 }

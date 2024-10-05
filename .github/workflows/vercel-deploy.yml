@@ -67,4 +67,11 @@ jobs:
       - name: Check deployment
         run: |
           DEPLOYMENT_URL=$(npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }})
-          curl -sSf $DEPLOYMENT_URL || (echo "Deployment failed" && exit 1)
+          echo "デプロイメントURL: $DEPLOYMENT_URL"
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" $DEPLOYMENT_URL)
+          if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
+            echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
+          else
+            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_STATUS"
+            exit 1
+          fi

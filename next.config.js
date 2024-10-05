@@ -27,6 +27,14 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/:path*',
+        destination: '/',
+      },
+    ];
+  },
   images: {
     domains: ['firebasestorage.googleapis.com'],
   },
