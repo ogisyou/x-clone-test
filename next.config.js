@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true, 
+  reactStrictMode: true,
   swcMinify: true,
   experimental: {
     forceSwcTransforms: true,
@@ -30,6 +30,7 @@ const nextConfig = {
   images: {
     domains: ['firebasestorage.googleapis.com'],
   },
+  // webpack設定を追加
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
