@@ -5,17 +5,17 @@
   "engines": {
     "node": "20"
   },
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "build:functions": "cd functions && npm run build",
-    "deploy:functions": "firebase deploy --only functions",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "type-check": "tsc --noEmit"
-  },
+"scripts": {
+  "dev": "next dev",
+  "build": "next build && npm run build:functions",
+  "build:functions": "cd functions && npm run build",
+  "deploy:functions": "firebase deploy --only functions",
+  "start": "next start",
+  "lint": "next lint",
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "type-check": "tsc --noEmit"
+},
   "dependencies": {
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",

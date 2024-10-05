@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
+    appDir: true,
     forceSwcTransforms: true,
   },
   async headers() {
@@ -27,18 +28,9 @@ const nextConfig = {
       },
     ];
   },
-  async rewrites() {
-    return [
-      {
-        source: '/:path*',
-        destination: '/',
-      },
-    ];
-  },
   images: {
     domains: ['firebasestorage.googleapis.com'],
   },
-  // webpack設定を追加
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
