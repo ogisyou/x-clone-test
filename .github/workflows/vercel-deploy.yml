@@ -44,27 +44,22 @@ jobs:
           npm run build
           cp -r lib/* .
 
-      - name: Setup Google Application Credentials
-        run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > ${{ github.workspace }}/gcp-credentials.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/gcp-credentials.json" >> $GITHUB_ENV
-
       - name: Set Firebase project
-        run: firebase use x-clone-test2
+        run: firebase use x-clone-test2 --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: Debug Firebase config
         run: |
           echo "Firebase project list:"
-          firebase projects:list
+          firebase projects:list --token "${{ secrets.FIREBASE_TOKEN }}"
           echo "Current project config:"
-          firebase use
+          firebase use --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: Deploy Firebase Functions
-        run: firebase deploy --only functions --project x-clone-test2
+        run: firebase deploy --only functions --project x-clone-test2 --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: Update vercel.json with Functions URL
         run: |
-          FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production) || echo "Failed to get Functions URL"
+          FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production --token "${{ secrets.FIREBASE_TOKEN }}") || echo "Failed to get Functions URL"
           echo "Functions URL: $FUNCTIONS_URL"
           if [ -n "$FUNCTIONS_URL" ]; then
             sed -i 's|https://us-central1-x-clone-test2.cloudfunctions.net|'"$FUNCTIONS_URL"'|g' vercel.json
