@@ -11,6 +11,8 @@ module.exports = {
     "plugin:import/typescript",
     "google",
     "plugin:@typescript-eslint/recommended",
+    "next/core-web-vitals", 
+    "next/typescript",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
