@@ -4,7 +4,6 @@ import FollowButton from '@/app/components/common/FollowButton';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 
-// Firebase のモック
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(),
 }));
@@ -47,7 +46,7 @@ describe('FollowButton', () => {
     const { getByText } = render(
       <FollowButton
         userId={mockUserId}
-        following={mockFollowing}
+        following={new Set([mockUserId])}
         onFollowChange={mockOnFollowChange}
       />
     );
@@ -69,13 +68,15 @@ describe('FollowButton', () => {
       expect(updateDoc).toHaveBeenCalledTimes(2);
       expect(mockOnFollowChange).toHaveBeenCalledWith(mockUserId, true);
     });
+
+    expect(getByText('フォロー中')).toBeInTheDocument();
   });
 
   it('handles unfollow action correctly', async () => {
     const { getByText } = render(
       <FollowButton
         userId={mockUserId}
-        following={mockFollowing}
+        following={new Set([mockUserId])}
         onFollowChange={mockOnFollowChange}
       />
     );
@@ -86,6 +87,8 @@ describe('FollowButton', () => {
       expect(updateDoc).toHaveBeenCalledTimes(2);
       expect(mockOnFollowChange).toHaveBeenCalledWith(mockUserId, false);
     });
+
+    expect(getByText('フォロー')).toBeInTheDocument();
   });
 
   it('displays error message when user is not logged in', async () => {
