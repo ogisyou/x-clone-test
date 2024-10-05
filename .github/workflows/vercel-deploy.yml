@@ -18,6 +18,18 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Set up environment variables
+        run: |
+          echo "NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}" >> $GITHUB_ENV
+          echo "MY_FIREBASE_PROJECT_ID=${{ secrets.MY_FIREBASE_PROJECT_ID }}" >> $GITHUB_ENV
+          echo "MY_FIREBASE_CLIENT_EMAIL=${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}" >> $GITHUB_ENV
+          echo "MY_FIREBASE_PRIVATE_KEY='${{ secrets.MY_FIREBASE_PRIVATE_KEY }}'" >> $GITHUB_ENV
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -45,7 +57,7 @@ jobs:
           cp -r lib/* .
 
       - name: Set Firebase project
-        run: firebase use x-clone-test2 --token "${{ secrets.FIREBASE_TOKEN }}"
+        run: firebase use ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: Debug Firebase config
         run: |
@@ -55,14 +67,14 @@ jobs:
           firebase use --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: Deploy Firebase Functions
-        run: firebase deploy --only functions --project x-clone-test2 --token "${{ secrets.FIREBASE_TOKEN }}"
+        run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: Update vercel.json with Functions URL
         run: |
           FUNCTIONS_URL=$(firebase functions:config:get deploy.url.production --token "${{ secrets.FIREBASE_TOKEN }}") || echo "Failed to get Functions URL"
           echo "Functions URL: $FUNCTIONS_URL"
           if [ -n "$FUNCTIONS_URL" ]; then
-            sed -i 's|https://us-central1-x-clone-test2.cloudfunctions.net|'"$FUNCTIONS_URL"'|g' vercel.json
+            sed -i 's|https://us-central1-${{ secrets.MY_FIREBASE_PROJECT_ID }}.cloudfunctions.net|'"$FUNCTIONS_URL"'|g' vercel.json
           else
             echo "Warning: Failed to update vercel.json with Functions URL"
           fi
