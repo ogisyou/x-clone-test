@@ -42,7 +42,7 @@ jobs:
 
       - name: List build output
         run: ls -R .next
-     
+
       - name: Show Next.js build logs
         run: cat .next/build-manifest.json
 
@@ -56,9 +56,10 @@ jobs:
       - name: Deploy Firebase Functions
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only functions --project ${{ secrets.FIREBASE_PROJECT_ID }}
+          args: deploy --only functions --project ${{ env.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
 
       - name: Update vercel.json with Functions URL
         env:
