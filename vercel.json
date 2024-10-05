@@ -5,6 +5,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://us-central1-x-clone-test2.cloudfunctions.net/deleteUser/$1"
+    },
+    {
+      "source": "/",
+      "destination": "/login"
     }
   ]
 }
