@@ -91,7 +91,9 @@ jobs:
 
       - name: Firebase Functions のデプロイ
         run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}
-
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
+          
       - name: Functions URL の取得
         run: |
           FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}) || echo "Functions URL の取得に失敗しました"
