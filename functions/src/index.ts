@@ -12,9 +12,9 @@ const auth = admin.auth();
 // CORS設定
 const corsHandler = cors({
   origin: [
-    'https://x-clone-test-a9d8yq4mp-ogisyous-projects.vercel.app',
-    'https://x-clone-test2.web.app',
-    'http://localhost:3000'
+    "https://x-clone-test-a9d8yq4mp-ogisyous-projects.vercel.app",
+    "https://x-clone-test2.web.app",
+    "http://localhost:3000",
   ],
   credentials: true,
 });
