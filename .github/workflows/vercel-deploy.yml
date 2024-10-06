@@ -44,9 +44,6 @@ jobs:
       - name: Firebase CLI のインストール
         run: npm install -g firebase-tools
 
-   
-
-
       - name: サービスアカウントキーのセットアップ
         run: |
           echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/gcp-key.json
@@ -84,6 +81,8 @@ jobs:
 
       - name: Firebase プロジェクトの設定
         run: firebase use ${{ secrets.MY_FIREBASE_PROJECT_ID }}
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
 
       - name: Firebase 設定のデバッグ
         run: |
@@ -91,6 +90,8 @@ jobs:
           firebase projects:list
           echo "現在のプロジェクト設定:"
           firebase use
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
 
       - name: Firebase Functions のデプロイ
         run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}
@@ -102,6 +103,8 @@ jobs:
           FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}) || echo "Functions URL の取得に失敗しました"
           echo "Functions URL: $FUNCTIONS_URL"
           echo "FUNCTIONS_URL=$FUNCTIONS_URL" >> $GITHUB_ENV
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
 
       - name: 更新前の vercel.json のデバッグ
         run: cat vercel.json
