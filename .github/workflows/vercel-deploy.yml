@@ -136,11 +136,16 @@ jobs:
             exit 1
           fi
           echo "チェックする URL: $DEPLOYMENT_URL"
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" $DEPLOYMENT_URL)
+          HTTP_RESPONSE=$(curl -s -I $DEPLOYMENT_URL)
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | grep HTTP | awk '{print $2}')
           echo "HTTP ステータスコード: $HTTP_STATUS"
+          echo "レスポンスヘッダー:"
+          echo "$HTTP_RESPONSE"
           if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
           else
             echo "デプロイメントが失敗しました。ステータスコード: $HTTP_STATUS"
+            echo "レスポンスボディ:"
+            curl -s $DEPLOYMENT_URL
             exit 1
           fi
