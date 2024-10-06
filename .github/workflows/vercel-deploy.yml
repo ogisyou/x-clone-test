@@ -44,10 +44,8 @@ jobs:
       - name: Firebase CLI のインストール
         run: npm install -g firebase-tools
 
-
       - name: デバッグ: Base64 文字列の出力
         run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}"
-
 
       - name: サービスアカウントキーのセットアップ
         run: |
