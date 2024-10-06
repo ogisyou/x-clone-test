@@ -44,10 +44,7 @@ jobs:
       - name: Firebase CLI のインストール
         run: npm install -g firebase-tools
 
-      - name: デバッグ: Base64 文字列の長さを出力
-        run: echo "Base64 文字列の長さ: ${#GOOGLE_APPLICATION_CREDENTIALS_BASE64}"
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+   
 
 
       - name: サービスアカウントキーのセットアップ
