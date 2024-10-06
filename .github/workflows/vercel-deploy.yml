@@ -44,6 +44,11 @@ jobs:
       - name: Firebase CLI のインストール
         run: npm install -g firebase-tools
 
+      - name: サービスアカウントキーのセットアップ
+        run: |
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/gcp-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
+
       - name: Next.js アプリのビルド
         run: npm run build:next
         env:
@@ -75,21 +80,21 @@ jobs:
           fi
 
       - name: Firebase プロジェクトの設定
-        run: firebase use ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+        run: firebase use ${{ secrets.MY_FIREBASE_PROJECT_ID }}
 
       - name: Firebase 設定のデバッグ
         run: |
           echo "Firebase プロジェクトリスト:"
-          firebase projects:list --token "${{ secrets.FIREBASE_TOKEN }}"
+          firebase projects:list
           echo "現在のプロジェクト設定:"
-          firebase use --token "${{ secrets.FIREBASE_TOKEN }}"
+          firebase use
 
       - name: Firebase Functions のデプロイ
-        run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+        run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}
 
       - name: Functions URL の取得
         run: |
-          FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}") || echo "Functions URL の取得に失敗しました"
+          FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}) || echo "Functions URL の取得に失敗しました"
           echo "Functions URL: $FUNCTIONS_URL"
           echo "FUNCTIONS_URL=$FUNCTIONS_URL" >> $GITHUB_ENV
 
