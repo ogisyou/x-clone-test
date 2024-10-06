@@ -1,4 +1,4 @@
-name: Deploy Functions and Vercel
+name: Functions と Vercel のデプロイ
 
 on:
   push:
@@ -13,12 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Node.js のセットアップ
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      - name: Set up environment variables
+      - name: 環境変数の設定
         run: |
           echo "NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}" >> $GITHUB_ENV
           echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}" >> $GITHUB_ENV
@@ -30,7 +30,7 @@ jobs:
           echo "MY_FIREBASE_CLIENT_EMAIL=${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}" >> $GITHUB_ENV
           echo "MY_FIREBASE_PRIVATE_KEY='${{ secrets.MY_FIREBASE_PRIVATE_KEY }}'" >> $GITHUB_ENV
 
-      - name: Cache dependencies
+      - name: 依存関係のキャッシュ
         uses: actions/cache@v3
         with:
           path: ~/.npm
@@ -38,58 +38,86 @@ jobs:
           restore-keys: |
             ${{ runner.OS }}-node-
 
-      - name: Install root dependencies
+      - name: ルートの依存関係をインストール
         run: npm ci
 
-      - name: Install Firebase CLI
+      - name: Firebase CLI のインストール
         run: npm install -g firebase-tools
 
-      - name: Build Next.js app
+      - name: Next.js アプリのビルド
         run: npm run build:next
         env:
           CI: true
 
-      - name: Install and Build Functions
+      - name: Functions のインストールとビルド
         run: |
           cd functions
           npm ci
           npm run build
           cp -r lib/* .
 
-      - name: Set Firebase project
+      - name: vercel.json の確認
+        run: |
+          if [ -f vercel.json ]; then
+            echo "vercel.json が存在します。内容:"
+            cat vercel.json
+          else
+            echo "vercel.json が存在しません。基本的な vercel.json ファイルを作成します。"
+            echo '{
+              "version": 2,
+              "builds": [
+                {
+                  "src": "package.json",
+                  "use": "@vercel/next"
+                }
+              ]
+            }' > vercel.json
+          fi
+
+      - name: Firebase プロジェクトの設定
         run: firebase use ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
-      - name: Debug Firebase config
+      - name: Firebase 設定のデバッグ
         run: |
-          echo "Firebase project list:"
+          echo "Firebase プロジェクトリスト:"
           firebase projects:list --token "${{ secrets.FIREBASE_TOKEN }}"
-          echo "Current project config:"
+          echo "現在のプロジェクト設定:"
           firebase use --token "${{ secrets.FIREBASE_TOKEN }}"
 
-      - name: Deploy Firebase Functions
+      - name: Firebase Functions のデプロイ
         run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
-      - name: Get Functions URL
+      - name: Functions URL の取得
         run: |
-          FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}") || echo "Failed to get Functions URL"
+          FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}") || echo "Functions URL の取得に失敗しました"
           echo "Functions URL: $FUNCTIONS_URL"
           echo "FUNCTIONS_URL=$FUNCTIONS_URL" >> $GITHUB_ENV
 
-      - name: Debug vercel.json before update
+      - name: 更新前の vercel.json のデバッグ
         run: cat vercel.json
 
-      - name: Update vercel.json with Functions URL
+      - name: vercel.json を Functions URL で更新
         run: |
           if [ -n "$FUNCTIONS_URL" ]; then
-            sed -i 's|https://us-central1-'"${{ secrets.MY_FIREBASE_PROJECT_ID }}"'.cloudfunctions.net/deleteUser|'"$FUNCTIONS_URL"'|g' vercel.json
+            cp vercel.json vercel.json.bak
+            jq --arg url "$FUNCTIONS_URL" '.rewrites[0].destination = $url' vercel.json > vercel.json.tmp && mv vercel.json.tmp vercel.json
+            echo "更新された vercel.json の内容:"
+            cat vercel.json
           else
-            echo "Warning: Failed to update vercel.json with Functions URL"
+            echo "警告: Functions URL で vercel.json の更新に失敗しました"
           fi
 
-      - name: Debug vercel.json after update
-        run: cat vercel.json
+      - name: vercel.json の検証
+        run: |
+          if jq empty vercel.json 2>/dev/null; then
+            echo "vercel.json は有効な JSON です。"
+          else
+            echo "vercel.json は有効な JSON ではありません。内容:"
+            cat vercel.json
+            exit 1
+          fi
 
-      - name: Deploy to Vercel
+      - name: Vercel へのデプロイ
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -99,15 +127,15 @@ jobs:
           npx vercel build --prod --token $VERCEL_TOKEN
           DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
-          echo "デプロイメントURL: $DEPLOYMENT_URL"
+          echo "デプロイメント URL: $DEPLOYMENT_URL"
 
-      - name: Deployment check
+      - name: デプロイメントチェック
         run: |
           if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "エラー: デプロイメントURLが設定されていません"
+            echo "エラー: デプロイメント URL が設定されていません"
             exit 1
           fi
-          echo "チェックするURL: $DEPLOYMENT_URL"
+          echo "チェックする URL: $DEPLOYMENT_URL"
           HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" $DEPLOYMENT_URL)
           echo "HTTP ステータスコード: $HTTP_STATUS"
           if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
