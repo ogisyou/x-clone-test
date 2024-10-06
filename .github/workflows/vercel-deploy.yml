@@ -47,6 +47,7 @@ jobs:
       - name: デバッグ: Base64 文字列の出力
         run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}"
 
+
       - name: サービスアカウントキーのセットアップ
         run: |
           echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/gcp-key.json
