@@ -30,7 +30,9 @@ jobs:
           echo "MY_FIREBASE_CLIENT_EMAIL=${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}" >> $GITHUB_ENV
           echo "MY_FIREBASE_PRIVATE_KEY='${{ secrets.MY_FIREBASE_PRIVATE_KEY }}'" >> $GITHUB_ENV
           echo "FIREBASE_TOKEN=${{ secrets.FIREBASE_TOKEN }}" >> $GITHUB_ENV
-
+          echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
+          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
+          echo "VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}" >> $GITHUB_ENV
 
       - name: サービスアカウントキーのセットアップ
         run: |
@@ -44,6 +46,9 @@ jobs:
           echo "MY_FIREBASE_PRIVATE_KEY は設定されています: ${{ secrets.MY_FIREBASE_PRIVATE_KEY != '' }}"
           echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
           echo "FIREBASE_TOKEN は設定されています: ${{ secrets.FIREBASE_TOKEN != '' }}"
+          echo "VERCEL_ORG_ID は設定されています: ${{ secrets.VERCEL_ORG_ID != '' }}"
+          echo "VERCEL_PROJECT_ID は設定されています: ${{ secrets.VERCEL_PROJECT_ID != '' }}"
+          echo "VERCEL_TOKEN は設定されています: ${{ secrets.VERCEL_TOKEN != '' }}"
 
       - name: 環境変数の詳細確認
         run: |
@@ -76,6 +81,18 @@ jobs:
           else
             echo "FIREBASE_TOKEN is not set"
           fi
+          
+      - name: Vercel 環境変数のデバッグ
+        run: |
+          for var in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN
+          do
+            if [ -n "${!var}" ]; then
+              echo "$var is set"
+              echo "$var length: ${#var}"
+            else
+              echo "$var is not set"
+            fi
+          done
 
       - name: 依存関係のキャッシュ
         uses: actions/cache@v3
