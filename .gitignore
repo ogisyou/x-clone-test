@@ -35,10 +35,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
+gcp-key.json
 firebase-admin-key.json
 .env
 
+
+firebase-admin-key.json
 
 .next
 out
