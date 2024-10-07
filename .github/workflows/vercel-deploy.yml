@@ -37,6 +37,19 @@ jobs:
           echo "MY_FIREBASE_PRIVATE_KEY は設定されています: ${{ secrets.MY_FIREBASE_PRIVATE_KEY != '' }}"
           echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
 
+      - name: 環境変数の詳細確認
+        run: |
+          echo "環境変数の詳細:"
+          for var in NEXT_PUBLIC_FIREBASE_API_KEY NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN NEXT_PUBLIC_FIREBASE_PROJECT_ID NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID NEXT_PUBLIC_FIREBASE_APP_ID MY_FIREBASE_PROJECT_ID MY_FIREBASE_CLIENT_EMAIL MY_FIREBASE_PRIVATE_KEY GOOGLE_APPLICATION_CREDENTIALS
+          do
+            value="${!var}"
+            echo "$var:"
+            echo "  長さ: ${#value}"
+            echo "  最初の3文字: ${value:0:3}"
+            echo "  最後の3文字: ${value: -3}"
+            echo "---"
+          done
+
       - name: 依存関係のキャッシュ
         uses: actions/cache@v3
         with:
@@ -106,9 +119,21 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
 
       - name: Firebase Functions のデプロイ
-        run: firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}
+        run: |
+          if firebase deploy --only functions --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}; then
+            echo "GOOGLE_APPLICATION_CREDENTIALSを使用してデプロイに成功しました。"
+          else
+            echo "GOOGLE_APPLICATION_CREDENTIALSを使用したデプロイに失敗しました。FIREBASE_TOKENを使用します。"
+            if firebase deploy --only functions --token "$FIREBASE_TOKEN" --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}; then
+              echo "FIREBASE_TOKENを使用してデプロイに成功しました。"
+            else
+              echo "FIREBASE_TOKENを使用したデプロイにも失敗しました。"
+              exit 1
+            fi
+          fi
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Functions URL の取得
         run: |

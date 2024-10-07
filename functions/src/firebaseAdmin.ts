@@ -1,30 +1,15 @@
+// firebaseAdmin.ts
 import * as admin from "firebase-admin";
 import * as dotenv from "dotenv";
 
 // 環境変数を読み込む
 dotenv.config();
+console.log("MY_FIREBASE_PROJECT_ID:", process.env.MY_FIREBASE_PROJECT_ID);
 
-// デバッグ用のログ
-console.log("Project ID:", process.env.MY_FIREBASE_PROJECT_ID);
-console.log("Client Email:", process.env.MY_FIREBASE_CLIENT_EMAIL);
-console.log(
-  "Private Key Length:",
-  process.env.MY_FIREBASE_PRIVATE_KEY ?
-    process.env.MY_FIREBASE_PRIVATE_KEY.length :
-    "Not set"
-);
 
 // Firebase Admin SDKの初期化
 if (!admin.apps.length) {
   try {
-    console.log("Initializing Firebase Admin SDK with:", {
-      projectId: process.env.MY_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.MY_FIREBASE_CLIENT_EMAIL,
-      privateKeyLength: process.env.MY_FIREBASE_PRIVATE_KEY ?
-        process.env.MY_FIREBASE_PRIVATE_KEY.length :
-        "Not set",
-    });
-
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.MY_FIREBASE_PROJECT_ID || "",
