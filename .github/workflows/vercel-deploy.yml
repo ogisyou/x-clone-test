@@ -6,7 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -31,6 +30,13 @@ jobs:
           echo "MY_FIREBASE_CLIENT_EMAIL=${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}" >> $GITHUB_ENV
           echo "MY_FIREBASE_PRIVATE_KEY='${{ secrets.MY_FIREBASE_PRIVATE_KEY }}'" >> $GITHUB_ENV
 
+      - name: 環境変数の確認
+        run: |
+          echo "MY_FIREBASE_PROJECT_ID: ${{ secrets.MY_FIREBASE_PROJECT_ID }}"
+          echo "MY_FIREBASE_CLIENT_EMAIL は設定されています: ${{ secrets.MY_FIREBASE_CLIENT_EMAIL != '' }}"
+          echo "MY_FIREBASE_PRIVATE_KEY は設定されています: ${{ secrets.MY_FIREBASE_PRIVATE_KEY != '' }}"
+          echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+
       - name: 依存関係のキャッシュ
         uses: actions/cache@v3
         with:
@@ -49,6 +55,11 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/gcp-key.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
+
+      - name: サービスアカウントキーの確認
+        run: |
+          echo "サービスアカウントキーの内容（秘密鍵を除く）:"
+          jq 'del(.private_key)' $GOOGLE_APPLICATION_CREDENTIALS
 
       - name: Next.js アプリのビルド
         run: npm run build:next
