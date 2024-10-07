@@ -5,9 +5,6 @@ import * as dotenv from "dotenv";
 // 環境変数を読み込む
 dotenv.config();
 
-console.log("MY_FIREBASE_PROJECT_ID:", process.env.MY_FIREBASE_PROJECT_ID);
-
-
 // Firebase Admin SDKの初期化
 if (!admin.apps.length) {
   try {
