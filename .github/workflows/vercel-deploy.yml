@@ -29,6 +29,13 @@ jobs:
           echo "MY_FIREBASE_PROJECT_ID=${{ secrets.MY_FIREBASE_PROJECT_ID }}" >> $GITHUB_ENV
           echo "MY_FIREBASE_CLIENT_EMAIL=${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}" >> $GITHUB_ENV
           echo "MY_FIREBASE_PRIVATE_KEY='${{ secrets.MY_FIREBASE_PRIVATE_KEY }}'" >> $GITHUB_ENV
+          echo "FIREBASE_TOKEN=${{ secrets.FIREBASE_TOKEN }}" >> $GITHUB_ENV
+
+
+      - name: サービスアカウントキーのセットアップ
+        run: |
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/gcp-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
 
       - name: 環境変数の確認
         run: |
@@ -36,6 +43,7 @@ jobs:
           echo "MY_FIREBASE_CLIENT_EMAIL は設定されています: ${{ secrets.MY_FIREBASE_CLIENT_EMAIL != '' }}"
           echo "MY_FIREBASE_PRIVATE_KEY は設定されています: ${{ secrets.MY_FIREBASE_PRIVATE_KEY != '' }}"
           echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+          echo "FIREBASE_TOKEN は設定されています: ${{ secrets.FIREBASE_TOKEN != '' }}"
 
       - name: 環境変数の詳細確認
         run: |
@@ -58,6 +66,15 @@ jobs:
             head -n 3 "$GOOGLE_APPLICATION_CREDENTIALS"
           else
             echo "GOOGLE_APPLICATION_CREDENTIALS ファイルが見つかりません"
+          fi
+
+      - name: FIREBASE_TOKEN のデバッグ
+        run: |
+          if [ -n "$FIREBASE_TOKEN" ]; then
+            echo "FIREBASE_TOKEN is set"
+            echo "FIREBASE_TOKEN length: ${#FIREBASE_TOKEN}"
+          else
+            echo "FIREBASE_TOKEN is not set"
           fi
 
       - name: 依存関係のキャッシュ
