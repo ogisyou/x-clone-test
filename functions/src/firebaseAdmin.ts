@@ -5,17 +5,24 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 // デバッグ用のログ
-console.log('Project ID:', process.env.MY_FIREBASE_PROJECT_ID);
-console.log('Client Email:', process.env.MY_FIREBASE_CLIENT_EMAIL);
-console.log('Private Key Length:', process.env.MY_FIREBASE_PRIVATE_KEY ? process.env.MY_FIREBASE_PRIVATE_KEY.length : 'Not set');
+console.log("Project ID:", process.env.MY_FIREBASE_PROJECT_ID);
+console.log("Client Email:", process.env.MY_FIREBASE_CLIENT_EMAIL);
+console.log(
+  "Private Key Length:",
+  process.env.MY_FIREBASE_PRIVATE_KEY ?
+    process.env.MY_FIREBASE_PRIVATE_KEY.length :
+    "Not set"
+);
 
 // Firebase Admin SDKの初期化
 if (!admin.apps.length) {
   try {
-    console.log('Initializing Firebase Admin SDK with:', {
+    console.log("Initializing Firebase Admin SDK with:", {
       projectId: process.env.MY_FIREBASE_PROJECT_ID,
       clientEmail: process.env.MY_FIREBASE_CLIENT_EMAIL,
-      privateKeyLength: process.env.MY_FIREBASE_PRIVATE_KEY ? process.env.MY_FIREBASE_PRIVATE_KEY.length : 'Not set'
+      privateKeyLength: process.env.MY_FIREBASE_PRIVATE_KEY ?
+        process.env.MY_FIREBASE_PRIVATE_KEY.length :
+        "Not set",
     });
 
     admin.initializeApp({
