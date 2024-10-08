@@ -143,9 +143,15 @@ jobs:
             curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" $DEPLOYMENT_URL
             exit 1
           fi
-
           
+       - name: Vercel ビルドログの確認
+        if: failure()
+        run: |
+          echo "ビルドログを確認しています..."
+          npx vercel inspect --logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
+                   
       - name: Vercel デプロイログの確認
         if: failure()
         run: |
-          npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN --since 5m
+          echo "デプロイメントログを確認しています..."
+          npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
