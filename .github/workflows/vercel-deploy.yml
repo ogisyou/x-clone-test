@@ -32,18 +32,6 @@ jobs:
           echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
           echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
           echo "VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}" >> $GITHUB_ENV
-          
-      - name: Firebase 認証情報の設定
-        run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/firebase-key.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json" >> $GITHUB_ENV
-
-      - name: Vercel 認証情報の設定
-        run: |
-          echo "VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}" >> $GITHUB_ENV
-          echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
-          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
-
 
       - name: サービスアカウントキーのセットアップ
         run: |
@@ -86,6 +74,8 @@ jobs:
             echo "GOOGLE_APPLICATION_CREDENTIALS ファイルが見つかりません"
           fi
 
+
+
       - name: FIREBASE_TOKEN のデバッグ
         run: |
           if [ -n "$FIREBASE_TOKEN" ]; then
@@ -118,16 +108,13 @@ jobs:
       - name: ルートの依存関係をインストール
         run: npm ci
 
-      - name: Firebase CLI のインストールと更新
-        run: |
-          npm install -g firebase-tools
-          firebase --version
+      - name: Firebase CLI のインストール
+        run: npm install -g firebase-tools
 
       - name: サービスアカウントキーのセットアップ
         run: |
           echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/gcp-key.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
-
 
       - name: サービスアカウントキーの確認
         run: |
@@ -180,8 +167,8 @@ jobs:
 
       - name: Firebase Functions のデプロイ
         run: |
-          
-          firebase deploy --only functions --project ${{ secrets.FIREBASE_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+          echo "Deploying with MY_FIREBASE_PROJECT_ID: $MY_FIREBASE_PROJECT_ID"
+          firebase deploy --only functions --project $MY_FIREBASE_PROJECT_ID
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -191,7 +178,7 @@ jobs:
 
       - name: Functions URL の取得
         run: |
-          FUNCTIONS_URL=$(firebase functions:shell | grep "deleteUser" | awk '{print $2}')
+          FUNCTIONS_URL=$(firebase functions:httpsurl deleteUser --project ${{ secrets.MY_FIREBASE_PROJECT_ID }}) || echo "Functions URL の取得に失敗しました"
           echo "Functions URL: $FUNCTIONS_URL"
           echo "FUNCTIONS_URL=$FUNCTIONS_URL" >> $GITHUB_ENV
         env:
@@ -240,12 +227,16 @@ jobs:
             exit 1
           fi
           echo "チェックする URL: $DEPLOYMENT_URL"
-          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
-          echo "HTTP ステータスコード: $HTTP_RESPONSE"
-          if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "404" ]; then
-            echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
+          HTTP_RESPONSE=$(curl -s -I $DEPLOYMENT_URL)
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | grep HTTP | awk '{print $2}')
+          echo "HTTP ステータスコード: $HTTP_STATUS"
+          echo "レスポンスヘッダー:"
+          echo "$HTTP_RESPONSE"
+          if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
+            echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
           else
-            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
-            curl -sS $DEPLOYMENT_URL
+            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_STATUS"
+            echo "レスポンスボディ:"
+            curl -s $DEPLOYMENT_URL
             exit 1
           fi
