@@ -63,7 +63,6 @@ jobs:
             echo "---"
           done
 
-
       - name: GOOGLE_APPLICATION_CREDENTIALS の確認
         run: |
           if [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
@@ -73,8 +72,6 @@ jobs:
           else
             echo "GOOGLE_APPLICATION_CREDENTIALS ファイルが見つかりません"
           fi
-
-
 
       - name: FIREBASE_TOKEN のデバッグ
         run: |
@@ -110,16 +107,6 @@ jobs:
 
       - name: Firebase CLI のインストール
         run: npm install -g firebase-tools
-
-      - name: サービスアカウントキーのセットアップ
-        run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > /tmp/gcp-key.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
-
-      - name: サービスアカウントキーの確認
-        run: |
-          echo "サービスアカウントキーの内容（秘密鍵を除く）:"
-          jq 'del(.private_key)' $GOOGLE_APPLICATION_CREDENTIALS
 
       - name: Next.js アプリのビルド
         run: npm run build:next
@@ -216,7 +203,7 @@ jobs:
         run: |
           npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
           npx vercel build --prod --token $VERCEL_TOKEN
-          DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイメント URL: $DEPLOYMENT_URL"
 
@@ -227,16 +214,19 @@ jobs:
             exit 1
           fi
           echo "チェックする URL: $DEPLOYMENT_URL"
-          HTTP_RESPONSE=$(curl -s -I $DEPLOYMENT_URL)
-          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | grep HTTP | awk '{print $2}')
-          echo "HTTP ステータスコード: $HTTP_STATUS"
+          HTTP_RESPONSE=$(curl -sS -I -o response_headers.txt -w "%{http_code}" $DEPLOYMENT_URL)
+          echo "HTTP ステータスコード: $HTTP_RESPONSE"
           echo "レスポンスヘッダー:"
-          echo "$HTTP_RESPONSE"
-          if [ $HTTP_STATUS = "200" ] || [ $HTTP_STATUS = "404" ]; then
-            echo "デプロイメントが成功しました。ステータスコード: $HTTP_STATUS"
+          cat response_headers.txt
+          if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "404" ]; then
+            echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
           else
-            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_STATUS"
+            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
             echo "レスポンスボディ:"
-            curl -s $DEPLOYMENT_URL
+            curl -sS $DEPLOYMENT_URL
             exit 1
           fi
+
+      - name: Vercel デプロイログの確認
+        if: failure()
+        run: npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
