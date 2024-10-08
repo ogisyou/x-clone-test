@@ -167,17 +167,8 @@ jobs:
 
       - name: Firebase Functions のデプロイ
         run: |
-          if firebase deploy --only functions --project $MY_FIREBASE_PROJECT_ID; then
-            echo "GOOGLE_APPLICATION_CREDENTIALSを使用してデプロイに成功しました。"
-          else
-            echo "GOOGLE_APPLICATION_CREDENTIALSを使用したデプロイに失敗しました。FIREBASE_TOKENを使用します。"
-            if firebase deploy --only functions --token "$FIREBASE_TOKEN" --project $MY_FIREBASE_PROJECT_ID; then
-              echo "FIREBASE_TOKENを使用してデプロイに成功しました。"
-            else
-              echo "FIREBASE_TOKENを使用したデプロイにも失敗しました。"
-              exit 1
-            fi
-          fi
+          echo "Deploying with MY_FIREBASE_PROJECT_ID: $MY_FIREBASE_PROJECT_ID"
+          firebase deploy --only functions --project $MY_FIREBASE_PROJECT_ID
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
