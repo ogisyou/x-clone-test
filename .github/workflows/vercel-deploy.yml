@@ -126,19 +126,25 @@ jobs:
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイメント URL: $DEPLOYMENT_URL"
 
+      - name: デプロイ後の待機
+        run: sleep 30
+
       - name: デプロイメントチェック
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "チェックする URL: $DEPLOYMENT_URL"
-          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
+          HTTP_RESPONSE=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
           echo "HTTP ステータスコード: $HTTP_RESPONSE"
-          if [ $HTTP_RESPONSE = "200" ]; then
+          if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "204" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
           else
             echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
-            curl -sS $DEPLOYMENT_URL
+            curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" $DEPLOYMENT_URL
             exit 1
           fi
 
+          
       - name: Vercel デプロイログの確認
         if: failure()
         run: |
