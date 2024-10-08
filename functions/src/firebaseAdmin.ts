@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 
-// 本番環境（GitHub Actions）でない場合のみdotenvを使用
-if (process.env.NODE_ENV !== "production") {
+// GitHub Actions環境でない場合のみdotenvを使用
+if (process.env.GITHUB_ACTIONS !== "true") {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const dotenv = require("dotenv");
   dotenv.config();
@@ -21,7 +21,6 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: process.env.MY_FIREBASE_PROJECT_ID,
         clientEmail: process.env.MY_FIREBASE_CLIENT_EMAIL,
-        // 環境変数から改行を正しく扱うための修正
         privateKey: process.env.MY_FIREBASE_PRIVATE_KEY ?
           process.env.MY_FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n") :
           undefined,
