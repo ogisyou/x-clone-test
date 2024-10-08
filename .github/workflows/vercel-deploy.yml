@@ -208,26 +208,33 @@ jobs:
           echo "デプロイメント URL: $DEPLOYMENT_URL"
           npx vercel alias set $DEPLOYMENT_URL ${{ secrets.VERCEL_DOMAIN }} --token $VERCEL_TOKEN
 
+      - name: Vercel へのデプロイ
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
+          npx vercel build --prod --token $VERCEL_TOKEN
+          DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          echo "デプロイメント URL: $DEPLOYMENT_URL"
+
+
       - name: デプロイメントチェック
         run: |
-          if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "エラー: デプロイメント URL が設定されていません"
-            exit 1
-          fi
           echo "チェックする URL: $DEPLOYMENT_URL"
-          HTTP_RESPONSE=$(curl -sS -I -L -o response_headers.txt -w "%{http_code}" $DEPLOYMENT_URL)
+          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
           echo "HTTP ステータスコード: $HTTP_RESPONSE"
-          echo "レスポンスヘッダー:"
-          cat response_headers.txt
-          if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "404" ]; then
+          if [ $HTTP_RESPONSE = "200" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
           else
-            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
-            echo "レスポンスボディ:"
-            curl -sS -L $DEPLOYMENT_URL
+            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_STATUS"
+            curl -sS $DEPLOYMENT_URL
             exit 1
           fi
 
       - name: Vercel デプロイログの確認
         if: failure()
-        run: npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
+        run: |
+          npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN --since 5m
