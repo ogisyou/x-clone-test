@@ -1,23 +1,12 @@
 import * as admin from "firebase-admin";
 
 console.log("環境変数の確認(firebaseAdmin.ts):");
-console.log("MY_FIREBASE_PROJECT_ID:", process.env.MY_FIREBASE_PROJECT_ID);
-console.log("MY_FIREBASE_CLIENT_EMAIL:", process.env.MY_FIREBASE_CLIENT_EMAIL);
-console.log("MY_FIREBASE_PRIVATE_KEY length:", process.env.MY_FIREBASE_PRIVATE_KEY ?
-  process.env.MY_FIREBASE_PRIVATE_KEY.length : "undefined");
+console.log("GOOGLE_APPLICATION_CREDENTIALS:", process.env.GOOGLE_APPLICATION_CREDENTIALS);
 
 if (!admin.apps.length) {
   try {
-    const serviceAccount = {
-      projectId: process.env.MY_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.MY_FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.MY_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    };
-
-    console.log("Service Account:", JSON.stringify(serviceAccount, null, 2));
-
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+      credential: admin.credential.applicationDefault(),
     });
     console.log("Firebase Admin SDK initialized successfully");
   } catch (error) {
@@ -28,4 +17,4 @@ if (!admin.apps.length) {
 
 export const db = admin.firestore();
 export const auth = admin.auth();
-export {admin};
+export { admin };

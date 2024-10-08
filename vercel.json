@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "echo $GOOGLE_APPLICATION_CREDENTIALS_BASE64 | base64 -d > /tmp/gcp-key.json && GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json npm run build && npm run build:functions",
+  "buildCommand": "echo $GOOGLE_APPLICATION_CREDENTIALS_JSON > /tmp/gcp-key.json && GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json npm run build && npm run build:functions",
   "outputDirectory": ".next",
   "rewrites": [
     {
