@@ -1,34 +1,60 @@
-// index.ts
 import * as functions from "firebase-functions";
 import cors from "cors";
 import {db, auth} from "./firebaseAdmin";
 
-
 // CORS設定
-const corsHandler = cors({origin: true, credentials: true});
+const corsHandler = cors({
+  origin: true,
+  methods: ["POST", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+});
 
 // ユーザー削除関数
 export const deleteUser = functions.https.onRequest((req, res) => {
   return corsHandler(req, res, async () => {
-    // POSTリクエスト以外は拒否
+    console.log("リクエストヘッダー:", req.headers);
+    console.log("認証情報:", req.get("Authorization"));
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
     if (req.method !== "POST") {
       res.status(405).json({message: "許可されていないメソッドです"});
       return;
     }
 
+    const authHeader = req.get("Authorization");
+    if (!authHeader) {
+      res.status(401).json({message: "認証情報が不足しています"});
+      return;
+    }
+
+    try {
+      const token = authHeader.split("Bearer ")[1];
+      await auth.verifyIdToken(token);
+    } catch (error) {
+      console.error("トークン検証エラー:", error);
+      res.status(401).json({message: "無効な認証トークンです"});
+      return;
+    }
+
     const {uid} = req.body;
 
-    // UIDが提供されていない場合はエラー
     if (!uid) {
       res.status(400).json({message: "ユーザーIDが必要です"});
       return;
     }
 
     try {
-      // Firestoreからユーザーデータを削除
+      console.log("Firestoreとの接続を確認中...");
+      await db.collection("users").doc(uid).get();
+      console.log("Firestore接続成功");
+
       await db.collection("users").doc(uid).delete();
 
-      // ユーザーの投稿を削除
       const postsSnapshot = await db.collection("posts").where("uid", "==", uid).get();
       const batch = db.batch();
       postsSnapshot.docs.forEach((doc) => {
@@ -36,17 +62,23 @@ export const deleteUser = functions.https.onRequest((req, res) => {
       });
       await batch.commit();
 
-      // Firebase Authからユーザーを削除
       await auth.deleteUser(uid);
 
       res.status(200).json({message: "ユーザーが正常に削除されました"});
     } catch (error) {
-      console.error("ユーザー削除エラー:", error);
+      console.error("詳細なエラー情報:", error);
       if (error instanceof Error) {
         console.error("エラースタック:", error.stack);
-        res.status(500).json({message: "ユーザー削除エラー", error: error.message, stack: error.stack});
+        res.status(500).json({
+          message: "ユーザー削除エラー",
+          error: error.message,
+          stack: error.stack,
+        });
       } else {
-        res.status(500).json({message: "ユーザー削除エラー", error: "不明なエラーが発生しました"});
+        res.status(500).json({
+          message: "ユーザー削除エラー",
+          error: "不明なエラーが発生しました",
+        });
       }
     }
   });
