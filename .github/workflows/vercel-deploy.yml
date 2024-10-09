@@ -28,7 +28,6 @@ jobs:
           echo 'MY_FIREBASE_PRIVATE_KEY<<EOF' >> $GITHUB_ENV
           echo "${{ secrets.MY_FIREBASE_PRIVATE_KEY }}" >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
-          echo "FIREBASE_TOKEN=${{ secrets.FIREBASE_TOKEN }}" >> $GITHUB_ENV
           echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
           echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
           echo "VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}" >> $GITHUB_ENV
@@ -45,15 +44,16 @@ jobs:
           echo "MY_FIREBASE_CLIENT_EMAIL は設定されています: ${{ env.MY_FIREBASE_CLIENT_EMAIL != '' }}"
           echo "MY_FIREBASE_PRIVATE_KEY は設定されています: ${{ env.MY_FIREBASE_PRIVATE_KEY != '' }}"
           echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
-          echo "FIREBASE_TOKEN は設定されています: ${{ env.FIREBASE_TOKEN != '' }}"
           echo "VERCEL_ORG_ID は設定されています: ${{ env.VERCEL_ORG_ID != '' }}"
           echo "VERCEL_PROJECT_ID は設定されています: ${{ env.VERCEL_PROJECT_ID != '' }}"
           echo "VERCEL_TOKEN は設定されています: ${{ env.VERCEL_TOKEN != '' }}"
+          echo "GOOGLE_APPLICATION_CREDENTIALS の内容:"
+          cat $GOOGLE_APPLICATION_CREDENTIALS | jq 'del(.private_key)'
 
       - name: 環境変数の詳細確認
         run: |
           echo "環境変数の詳細:"
-          for var in FIREBASE_CONFIG MY_FIREBASE_PROJECT_ID MY_FIREBASE_CLIENT_EMAIL MY_FIREBASE_PRIVATE_KEY GOOGLE_APPLICATION_CREDENTIALS FIREBASE_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN
+          for var in FIREBASE_CONFIG MY_FIREBASE_PROJECT_ID MY_FIREBASE_CLIENT_EMAIL MY_FIREBASE_PRIVATE_KEY GOOGLE_APPLICATION_CREDENTIALS VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN
           do
             value="${!var}"
             echo "$var:"
@@ -109,10 +109,6 @@ jobs:
           firebase deploy --only functions --project $MY_FIREBASE_PROJECT_ID
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          MY_FIREBASE_PROJECT_ID: ${{ secrets.MY_FIREBASE_PROJECT_ID }}
-          MY_FIREBASE_CLIENT_EMAIL: ${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}
-          MY_FIREBASE_PRIVATE_KEY: ${{ secrets.MY_FIREBASE_PRIVATE_KEY }}
 
       - name: Vercel へのデプロイ
         env:
