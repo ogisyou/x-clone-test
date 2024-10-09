@@ -34,7 +34,7 @@ jobs:
 
       - name: サービスアカウントキーのセットアップ
         run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > /tmp/gcp-key.json
+          echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
 
       - name: 環境変数の確認
@@ -117,6 +117,10 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Vercel デプロイを開始します..."
+          echo "VERCEL_ORG_ID: $VERCEL_ORG_ID"
+          echo "VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
+          npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
+          npx vercel build --prod --token $VERCEL_TOKEN
           DEPLOYMENT_OUTPUT=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
           echo "デプロイ出力: $DEPLOYMENT_OUTPUT"
           DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -o 'https://.*vercel.app' | head -n1)
@@ -141,6 +145,9 @@ jobs:
             exit 1
           fi
           
+      - name: Vercel CLI バージョン確認
+        run: npx vercel --version
+        
       - name: Vercel ビルドログの確認
         if: failure()
         run: |
@@ -148,16 +155,14 @@ jobs:
           npx vercel inspect --logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
                    
       - name: Vercel デプロイログの確認
-        if: always()  # 常に実行されるように変更
+        if: always()
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "デプロイメントログを確認しています..."
           echo "DEPLOYMENT_URL: $DEPLOYMENT_URL"
           if [ -n "$DEPLOYMENT_URL" ]; then
-            DEPLOYMENT_ID=$(echo $DEPLOYMENT_URL | sed -E 's/.*-([a-z0-9]+)\.vercel\.app/\1/')
-            echo "Deployment ID: $DEPLOYMENT_ID"
-            npx vercel logs $DEPLOYMENT_ID --token $VERCEL_TOKEN
+            npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
           else
             echo "エラー: DEPLOYMENT_URL が設定されていません"
             npx vercel ls --token $VERCEL_TOKEN
