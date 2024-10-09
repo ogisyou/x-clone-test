@@ -116,14 +116,12 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
-          npx vercel build --prod --token $VERCEL_TOKEN
-          DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          echo "Vercel デプロイを開始します..."
+          DEPLOYMENT_OUTPUT=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          echo "デプロイ出力: $DEPLOYMENT_OUTPUT"
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -o 'https://.*vercel.app' | head -n1)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
-          echo "デプロイメント URL: $DEPLOYMENT_URL"
-          # デバッグ出力を追加
-          echo "DEPLOYMENT_URL の長さ: ${#DEPLOYMENT_URL}"
-          echo "DEPLOYMENT_URL の最初の10文字: ${DEPLOYMENT_URL:0:10}"
+          echo "設定された DEPLOYMENT_URL: $DEPLOYMENT_URL"
 
       - name: デプロイ後の待機
         run: sleep 30
@@ -150,13 +148,16 @@ jobs:
           npx vercel inspect --logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
                    
       - name: Vercel デプロイログの確認
-        if: failure()
+        if: always()  # 常に実行されるように変更
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "デプロイメントログを確認しています..."
+          echo "DEPLOYMENT_URL: $DEPLOYMENT_URL"
           if [ -n "$DEPLOYMENT_URL" ]; then
-            npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
+            DEPLOYMENT_ID=$(echo $DEPLOYMENT_URL | sed -E 's/.*-([a-z0-9]+)\.vercel\.app/\1/')
+            echo "Deployment ID: $DEPLOYMENT_ID"
+            npx vercel logs $DEPLOYMENT_ID --token $VERCEL_TOKEN
           else
             echo "エラー: DEPLOYMENT_URL が設定されていません"
             npx vercel ls --token $VERCEL_TOKEN
