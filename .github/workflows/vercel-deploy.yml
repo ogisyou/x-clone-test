@@ -123,9 +123,15 @@ jobs:
           npx vercel build --prod --token $VERCEL_TOKEN
           DEPLOYMENT_OUTPUT=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
           echo "デプロイ出力: $DEPLOYMENT_OUTPUT"
+          # 出力を確認
+          if [[ -z "$DEPLOYMENT_OUTPUT" ]]; then
+            echo "エラー: DEPLOYMENT_OUTPUT が空です。デプロイに失敗した可能性があります。"
+            exit 1
+          fi
           DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -o 'https://.*vercel.app' | head -n1)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "設定された DEPLOYMENT_URL: $DEPLOYMENT_URL"
+
 
       - name: デプロイ後の待機
         run: sleep 30
