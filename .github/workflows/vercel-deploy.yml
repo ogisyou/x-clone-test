@@ -121,6 +121,9 @@ jobs:
           DEPLOYMENT_URL=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイメント URL: $DEPLOYMENT_URL"
+          # デバッグ出力を追加
+          echo "DEPLOYMENT_URL の長さ: ${#DEPLOYMENT_URL}"
+          echo "DEPLOYMENT_URL の最初の10文字: ${DEPLOYMENT_URL:0:10}"
 
       - name: デプロイ後の待機
         run: sleep 30
@@ -148,6 +151,13 @@ jobs:
                    
       - name: Vercel デプロイログの確認
         if: failure()
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "デプロイメントログを確認しています..."
-          npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
+          if [ -n "$DEPLOYMENT_URL" ]; then
+            npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
+          else
+            echo "エラー: DEPLOYMENT_URL が設定されていません"
+            npx vercel ls --token $VERCEL_TOKEN
+          fi
