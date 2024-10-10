@@ -1,13 +1,26 @@
+// functions/src/index.ts
+
 import express, {Request, Response} from "express";
 import * as functions from "firebase-functions";
 import cors from "cors";
-import * as admin from "firebase-admin";
-
-admin.initializeApp();
+import {auth, db} from "./firebaseAdmin";
 
 const app = express();
-app.use(cors({origin: true}));
+
+const corsOptions = {
+  origin: ["http://localhost:3000", "https://your-production-domain.com"], // 実際の本番ドメインに置き換えてください
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// ルートパスのハンドラー
+app.get("/", (req, res) => {
+  res.status(200).send("API is running");
+});
 
 app.post("/deleteUser", async (req: Request, res: Response) => {
   console.log("リクエストヘッダー:", req.headers);
@@ -24,7 +37,7 @@ app.post("/deleteUser", async (req: Request, res: Response) => {
   }
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await auth.verifyIdToken(idToken);
     console.log("デコードされたトークン:", decodedToken);
 
     const {uid} = req.body;
@@ -32,35 +45,18 @@ app.post("/deleteUser", async (req: Request, res: Response) => {
       return res.status(400).json({message: "ユーザーIDが必要です"});
     }
 
-    // ユーザーの削除処理
-    await admin.auth().deleteUser(uid);
-    await admin.firestore().collection("users").doc(uid).delete();
+    await auth.deleteUser(uid);
+    await db.collection("users").doc(uid).delete();
 
     console.log(`ユーザー ${uid} が正常に削除されました`);
     return res.status(200).json({message: "ユーザーが正常に削除されました"});
   } catch (error) {
     console.error("エラー:", error);
     if (error instanceof Error) {
-      return res
-        .status(500)
-        .json({message: "サーバー内部エラー", error: error.message});
+      return res.status(500).json({message: "サーバー内部エラー", error: error.message});
     }
     return res.status(500).json({message: "サーバー内部エラー"});
   }
 });
 
-export const api = functions.https.onRequest((req: Request, res: Response) => {
-  return app(req, res);
-});
-
-if (process.env.NODE_ENV !== "production") {
-  const port = process.env.PORT || 8080;
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-}
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  // アプリケーションをクラッシュさせる代わりに、ここでエラーを適切に処理します
-});
+export const api = functions.https.onRequest(app);

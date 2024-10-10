@@ -12,3 +12,4 @@ node_modules/
 firebase-admin-key.json
 gcp-key.json
 .env
+config.json

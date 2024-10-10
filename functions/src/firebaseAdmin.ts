@@ -1,21 +1,26 @@
+// functions/src/firebaseAdmin.ts
+
 import * as admin from "firebase-admin";
 import * as dotenv from "dotenv";
 
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
+// .env ファイルから環境変数を読み込む
+dotenv.config();
+
+const projectId = process.env.MY_FIREBASE_PROJECT_ID;
+const clientEmail = process.env.MY_FIREBASE_CLIENT_EMAIL;
+const privateKey = process.env.MY_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
 console.log("環境変数の確認(firebaseAdmin.ts):");
-console.log("MY_FIREBASE_PROJECT_ID:", process.env.MY_FIREBASE_PROJECT_ID);
-console.log("MY_FIREBASE_CLIENT_EMAIL:", process.env.MY_FIREBASE_CLIENT_EMAIL);
-console.log("MY_FIREBASE_PRIVATE_KEY is set:", !!process.env.MY_FIREBASE_PRIVATE_KEY);
+console.log("MY_FIREBASE_PROJECT_ID:", projectId);
+console.log("MY_FIREBASE_CLIENT_EMAIL:", clientEmail);
+console.log("MY_FIREBASE_PRIVATE_KEY is set:", !!privateKey);
 
 if (!admin.apps.length) {
   try {
     const serviceAccount = {
-      projectId: process.env.MY_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.MY_FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.MY_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      projectId,
+      clientEmail,
+      privateKey,
     };
 
     admin.initializeApp({

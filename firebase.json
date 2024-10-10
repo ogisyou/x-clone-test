@@ -1,4 +1,27 @@
 {
+  "functions": [
+    {
+      "source": "functions",
+      "runtime": "nodejs20",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ],
+      "environmentVariables": {
+        "MY_FIREBASE_PROJECT_ID": "${param:admin.project_id}",
+        "MY_FIREBASE_CLIENT_EMAIL": "${param:admin.client_email}",
+        "MY_FIREBASE_PRIVATE_KEY": "${param:admin.private_key}"
+      }
+    }
+  ],
   "hosting": {
     "public": "out",
     "ignore": [
@@ -30,23 +53,5 @@
         "maxAgeSeconds": 3600
       }
     ]
-  },
-  "functions": [
-    {
-      "source": "functions",
-      "runtime": "nodejs20",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
-    }
-  ]
+  }
 }
