@@ -11,9 +11,9 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "typeRoots": ["node_modules/@types"],
-    "lib": ["es2017", "dom"],
-    "forceConsistentCasingInFileNames": true
+    "lib": ["es2017"],
+    "forceConsistentCasingInFileNames": true,
+    "types": ["express", "node"]
   },
   "compileOnSave": true,
   "include": [
