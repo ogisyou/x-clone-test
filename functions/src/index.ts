@@ -8,8 +8,7 @@ import {auth, db} from "./firebaseAdmin";
 const app = express();
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://your-production-domain.com"], // 実際の本番ドメインに置き換えてください
-  methods: ["GET", "POST", "OPTIONS"],
+  origin: true,
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
@@ -48,7 +47,12 @@ app.post("/deleteUser", async (req: Request, res: Response) => {
     await auth.deleteUser(uid);
     await db.collection("users").doc(uid).delete();
 
-    console.log(`ユーザー ${uid} が正常に削除されました`);
+    // ユーザーの投稿データ削除 (posts コレクション)
+    const userPostsSnapshot = await db.collection("posts").where("uid", "==", uid).get();
+    const deletePromises = userPostsSnapshot.docs.map((doc) => doc.ref.delete());
+    await Promise.all(deletePromises);
+
+    console.log(`ユーザー ${uid} および関連する投稿が正常に削除されました`);
     return res.status(200).json({message: "ユーザーが正常に削除されました"});
   } catch (error) {
     console.error("エラー:", error);
@@ -59,4 +63,5 @@ app.post("/deleteUser", async (req: Request, res: Response) => {
   }
 });
 
-export const api = functions.https.onRequest(app);
+export const deleteUser = functions.https.onRequest(app);
+
