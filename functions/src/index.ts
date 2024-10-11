@@ -1,9 +1,7 @@
-// functions/src/index.ts
-
 import express from "express";
 import * as functions from "firebase-functions";
 import cors from "cors";
-import {auth, db} from "./firebaseAdmin";
+import {auth, db, FieldValue} from "./firebaseAdmin";
 
 const app = express();
 
@@ -46,14 +44,40 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
       return;
     }
 
+    // 削除するユーザーのデータを取得
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.data();
+
+    if (userData) {
+      // フォロワーのデータを更新
+      const followers = userData.followers || [];
+      for (const followerId of followers) {
+        await db.collection("users").doc(followerId).update({
+          following: FieldValue.arrayRemove(uid),
+        });
+      }
+
+      // フォロー中のユーザーのデータを更新
+      const following = userData.following || [];
+      for (const followingId of following) {
+        await db.collection("users").doc(followingId).update({
+          followers: FieldValue.arrayRemove(uid),
+        });
+      }
+    }
+
+    // ユーザーの認証情報を削除
     await auth.deleteUser(uid);
+
+    // ユーザードキュメントを削除
     await db.collection("users").doc(uid).delete();
 
+    // ユーザーの投稿を削除
     const userPostsSnapshot = await db.collection("posts").where("profileUid", "==", uid).get();
     const deletePromises = userPostsSnapshot.docs.map((doc) => doc.ref.delete());
     await Promise.all(deletePromises);
 
-    console.log(`ゲストユーザー ${uid} 、投稿が正常に削除されました`);
+    console.log(`ゲストユーザー ${uid} 、投稿、関連データが正常に削除されました`);
     res.status(200).json({message: "ユーザーが正常に削除されました"});
   } catch (error) {
     console.error("エラー:", error);
