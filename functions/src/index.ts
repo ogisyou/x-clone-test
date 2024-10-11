@@ -1,6 +1,6 @@
 // functions/src/index.ts
 
-import express, {Request, Response} from "express";
+import express from "express";
 import * as functions from "firebase-functions";
 import cors from "cors";
 import {auth, db} from "./firebaseAdmin";
@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
   res.status(200).send("API is running");
 });
 
-app.post("/deleteUser", async (req: Request, res: Response) => {
+app.post("/deleteUser", async (req, res) => {
   console.log("リクエストヘッダー:", req.headers);
   console.log("リクエストボディ:", req.body);
 
@@ -64,4 +64,3 @@ app.post("/deleteUser", async (req: Request, res: Response) => {
 });
 
 export const deleteUser = functions.https.onRequest(app);
-
