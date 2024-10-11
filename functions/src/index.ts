@@ -1,6 +1,6 @@
 // functions/src/index.ts
 
-import express from "express";
+import express, {Request, Response} from "express";
 import * as functions from "firebase-functions";
 import cors from "cors";
 import {auth, db} from "./firebaseAdmin";
@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
   res.status(200).send("API is running");
 });
 
-app.post("/deleteUser", async (req, res) => {
+app.post("/deleteUser", async (req: Request, res: Response) => {
   console.log("リクエストヘッダー:", req.headers);
   console.log("リクエストボディ:", req.body);
 
@@ -52,7 +52,7 @@ app.post("/deleteUser", async (req, res) => {
     const deletePromises = userPostsSnapshot.docs.map((doc) => doc.ref.delete());
     await Promise.all(deletePromises);
 
-    console.log(`ユーザー ${uid} および関連する投稿が正常に削除されました`);
+    console.log(`ゲストユーザー ${uid} 、投稿が正常に削除されました`);
     return res.status(200).json({message: "ユーザーが正常に削除されました"});
   } catch (error) {
     console.error("エラー:", error);
@@ -64,3 +64,4 @@ app.post("/deleteUser", async (req, res) => {
 });
 
 export const deleteUser = functions.https.onRequest(app);
+
