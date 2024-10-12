@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from '@mui/icons-material';
-import { collection, query, where, getDocs, getFirestore } from 'firebase/firestore';
+import { collection, query, getDocs, getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-
 
 const TwitterTweetEmbed = dynamic(
   () => import('react-twitter-embed').then((mod) => mod.TwitterTweetEmbed),
@@ -49,12 +48,17 @@ const Widgets: React.FC<WidgetsProps> = ({ className }) => {
 
     setIsSearching(true);
     const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('username', '>=', term), where('username', '<=', term + '\uf8ff'));
+    const q = query(usersRef);
 
     const querySnapshot = await getDocs(q);
     const userList: User[] = [];
+    const lowercaseTerm = term.toLowerCase();
+
     querySnapshot.forEach((doc) => {
-      userList.push({ id: doc.id, ...doc.data() } as User);
+      const userData = doc.data() as Omit<User, 'id'>;
+      if (userData.username.toLowerCase().startsWith(lowercaseTerm)) {
+        userList.push({ id: doc.id, ...userData });
+      }
     });
 
     setUsers(userList);
