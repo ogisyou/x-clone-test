@@ -1,7 +1,7 @@
 import express from "express";
 import * as functions from "firebase-functions";
 import cors from "cors";
-import {auth, db, FieldValue} from "./firebaseAdmin";
+import {db, auth, FieldValue} from "./firebaseAdmin";
 
 const app = express();
 
@@ -44,48 +44,121 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
       return;
     }
 
-    // 削除するユーザーのデータを取得
-    const userDoc = await db.collection("users").doc(uid).get();
-    const userData = userDoc.data();
+    console.log(`ユーザー削除処理開始: ${uid}`);
 
-    if (userData) {
-      // フォロワーのデータを更新
-      const followers = userData.followers || [];
-      for (const followerId of followers) {
-        await db.collection("users").doc(followerId).update({
+    await db.runTransaction(async (transaction) => {
+      // ユーザーデータの取得と削除
+      const userRef = db.collection("users").doc(uid);
+      const userDoc = await transaction.get(userRef);
+      if (!userDoc.exists) {
+        console.log(`ユーザー ${uid} が見つかりません`);
+        throw new Error("ユーザーが見つかりません");
+      }
+      const userData = userDoc.data();
+      transaction.delete(userRef);
+      console.log(`ユーザードキュメントを削除しました: ${uid}`);
+
+      // フォロワーとフォロー中のユーザーの更新
+      const followers = userData?.followers || [];
+      const following = userData?.following || [];
+      [...followers, ...following].forEach((relatedUserId) => {
+        const relatedUserRef = db.collection("users").doc(relatedUserId);
+        transaction.update(relatedUserRef, {
+          followers: FieldValue.arrayRemove(uid),
           following: FieldValue.arrayRemove(uid),
         });
+      });
+      console.log(
+        `${followers.length} 人のフォロワーと ${following.length} 人のフォロー中ユーザーデータを更新しました`
+      );
+
+      // ユーザーのいいねを削除
+      const postsRef = db.collection("posts");
+      const likedPostsSnapshot = await postsRef.get();
+      console.log(`取得した投稿数: ${likedPostsSnapshot.size}`);
+
+      const batchSize = 500;
+      let batch = db.batch();
+      let operationCount = 0;
+
+      // 各投稿のサブコレクション「likes」からいいねを削除
+      for (const postDoc of likedPostsSnapshot.docs) {
+        const postRef = postDoc.ref;
+        const likeRef = postRef.collection("likes").doc(uid); // サブコレクションの該当ドキュメントを取得
+
+        const likeDoc = await likeRef.get();
+        if (likeDoc.exists) {
+          batch.delete(likeRef); // サブコレクションの中のドキュメント（いいね）を削除
+          batch.update(postRef, {
+            likeCount: FieldValue.increment(-1), // いいねカウントを減らす
+          });
+
+          operationCount++;
+          if (operationCount === batchSize) {
+            await batch.commit();
+            batch = db.batch();
+            operationCount = 0;
+          }
+        }
       }
 
-      // フォロー中のユーザーのデータを更新
-      const following = userData.following || [];
-      for (const followingId of following) {
-        await db.collection("users").doc(followingId).update({
-          followers: FieldValue.arrayRemove(uid),
+      if (operationCount > 0) {
+        await batch.commit();
+      }
+
+      console.log("投稿のサブコレクションからいいねを削除しました");
+
+      // ユーザーの投稿を削除
+      const userPostsSnapshot = await postsRef.where("uid", "==", uid).get();
+
+      batch = db.batch();
+      operationCount = 0;
+
+      for (const doc of userPostsSnapshot.docs) {
+        const postRef = doc.ref;
+        // 投稿に対するすべてのいいねを削除
+        const likesSnapshot = await postRef.collection("likes").get();
+        likesSnapshot.docs.forEach((likeDoc) => {
+          batch.delete(likeDoc.ref);
         });
+        // 投稿自体を削除
+        batch.delete(postRef);
+
+        operationCount++;
+        if (operationCount === batchSize) {
+          await batch.commit();
+          batch = db.batch();
+          operationCount = 0;
+        }
+
+        console.log(`投稿 ${doc.id} とそのいいねを削除しました`);
       }
-    }
 
-    // ユーザーの認証情報を削除
+      if (operationCount > 0) {
+        await batch.commit();
+      }
+
+      console.log(`${userPostsSnapshot.size} 件のユーザー投稿を削除しました`);
+    });
+
+    // トランザクション外でユーザーの認証情報を削除
     await auth.deleteUser(uid);
+    console.log(`ユーザーの認証情報を削除しました: ${uid}`);
 
-    // ユーザードキュメントを削除
-    await db.collection("users").doc(uid).delete();
-
-    // ユーザーの投稿を削除
-    const userPostsSnapshot = await db.collection("posts").where("profileUid", "==", uid).get();
-    const deletePromises = userPostsSnapshot.docs.map((doc) => doc.ref.delete());
-    await Promise.all(deletePromises);
-
-    console.log(`ゲストユーザー ${uid} 、投稿、関連データが正常に削除されました`);
+    console.log(
+      `ユーザー ${uid} 、投稿、いいね、関連データが正常に削除されました`
+    );
     res.status(200).json({message: "ユーザーが正常に削除されました"});
   } catch (error) {
     console.error("エラー:", error);
     if (error instanceof Error) {
-      res.status(500).json({message: "サーバー内部エラー", error: error.message});
-    } else {
-      res.status(500).json({message: "サーバー内部エラー"});
+      console.error("エラーメッセージ:", error.message);
+      console.error("スタックトレース:", error.stack);
     }
+    res.status(500).json({
+      message: "サーバー内部エラー",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
