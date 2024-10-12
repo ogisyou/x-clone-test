@@ -1,31 +1,30 @@
 // app/components/timeline/Post.tsx
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import { Avatar } from '@mui/material';
 import VerifiedUser from '@mui/icons-material/VerifiedUser';
 import {
   ChatBubbleOutline,
   Repeat,
-  FavoriteBorder,
   PublishOutlined,
 } from '@mui/icons-material';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import { deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { deleteDoc, doc, getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import Image from 'next/image';
+import LikeButton from '@/app/components/common/LikeButton';
 
-// PostData 型を定義
 interface PostData {
   id: string;
   displayName: string;
   username: string;
   verified: boolean;
   text: string;
-  image?: string; // 画像はオプショナル
-  avatar?: string; // アバターもオプショナル
+  image?: string;
+  avatar?: string;
   postUid: string;
-  timestamp: string; // タイムスタンプの型を指定
+  timestamp: string;
+  likeCount: number;
 }
 
 const Post = forwardRef<HTMLDivElement, PostData>(
@@ -40,24 +39,22 @@ const Post = forwardRef<HTMLDivElement, PostData>(
       avatar,
       postUid,
       timestamp,
+      likeCount,
     },
     ref
   ) => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
+    const firestore = getFirestore();
 
-    // コンソールでログインユーザーのUIDを確認
-    // console.log('Current User UID:', currentUser?.uid);
-    // console.log('Post UID:', postUid);
+    useEffect(() => {
+      console.log(`Post ${id} likeCount:`, likeCount);
+      console.log(`Post ${id} likeCount type:`, typeof likeCount);
+    }, [id, likeCount]);
 
     const handleDelete = async () => {
-      if (!db) {
-        console.error('Firestoreが初期化されていません');
-        return;
-      }
-  
       try {
-        await deleteDoc(doc(db, 'posts', id));
+        await deleteDoc(doc(firestore, 'posts', id));
         console.log('投稿が正常に削除されました');
       } catch (error) {
         console.error('投稿の削除中にエラーが発生しました:', error);
@@ -87,7 +84,6 @@ const Post = forwardRef<HTMLDivElement, PostData>(
               </span>
             </h3>
 
-            {/* 削除ボタン：自分の投稿のみ表示 */}
             {currentUser?.uid === postUid && (
               <div>
                 <button
@@ -102,7 +98,7 @@ const Post = forwardRef<HTMLDivElement, PostData>(
           <p className="text-sm mb-2">{text}</p>
           {image && (
             <Image
-              className="rounded-xl "
+              className="rounded-xl"
               src={image}
               width={150}
               height={150}
@@ -112,7 +108,7 @@ const Post = forwardRef<HTMLDivElement, PostData>(
           <div className="flex justify-between mt-5 text-white">
             <ChatBubbleOutline className="text-base sm:text-xl" />
             <Repeat className="text-base sm:text-xl" />
-            <FavoriteBorder className="text-base sm:text-xl" />
+            <LikeButton postId={id} initialLikeCount={likeCount ?? 0} />
             <BarChartIcon className="text-base sm:text-xl" />
             <div className="flex space-x-2">
               <BookmarkBorderIcon className="text-base sm:text-xl" />
@@ -128,4 +124,3 @@ const Post = forwardRef<HTMLDivElement, PostData>(
 Post.displayName = 'Post';
 
 export default Post;
-

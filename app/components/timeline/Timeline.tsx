@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import TweetBox from './TweetBox';
 import Post from './Post';
@@ -30,6 +29,7 @@ interface PostData {
   image: string;
   uid: string;
   timestamp: Timestamp;
+  likeCount: number;  // likeCount を追加
 }
 
 interface TimelineProps {
@@ -46,7 +46,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
   useEffect(() => {
     if (!auth) {
       console.error('auth が null です');
-      setLoading(false); // ローディングを停止
+      setLoading(false);
       return;
     }
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -102,6 +102,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
               id: doc.id,
               ...(doc.data() as Omit<PostData, 'id'>),
               timestamp: doc.data().timestamp,
+              likeCount: doc.data().likeCount || 0,  // likeCount を追加、デフォルト値は 0
             })
           );
 
@@ -149,6 +150,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
                 image={post.image}
                 postUid={post.uid}
                 timestamp={formattedDate}
+                likeCount={post.likeCount}  // likeCount を追加
               />
             );
           })
