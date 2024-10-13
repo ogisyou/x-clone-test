@@ -75,7 +75,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-30 flex justify-center items-center min-h-screen">
-      <div className="bg-black p-9 rounded-2xl w-[400px] max-w-[90vw] h-[400px] max-h-[90vh] relative">
+      <div className="bg-black p-9 rounded-2xl w-[400px] max-w-[90vw] h-[500px] max-h-[90vh] relative">
         <button
           onClick={onClose}
           className="absolute top-4 left-4 text-gray-400 hover:text-white"
@@ -114,7 +114,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
               className="w-full p-2 mb-5 border border-gray-700 rounded text-white bg-black"
             />
             {error && <p className="text-red-500 mb-4">{error}</p>}
-            <button type="submit" className="w-[300px] bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 mt-8">
+            <button type="submit" className="w-[300px]  font-bold bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 mt-8">
               登録
             </button>
           </form>
