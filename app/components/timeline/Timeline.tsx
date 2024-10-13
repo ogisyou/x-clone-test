@@ -14,10 +14,21 @@ import {
   DocumentData,
   Timestamp,
   Query,
+  Firestore,
+  getDocs,
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import FlipMove from 'react-flip-move';
 import { useParams } from 'next/navigation';
+
+interface ReplyData {
+  id: string;
+  text: string;
+  displayName: string;
+  username: string;
+  timestamp: string;
+  postId: string;
+}
 
 interface PostData {
   id: string;
@@ -30,6 +41,7 @@ interface PostData {
   uid: string;
   timestamp: Timestamp;
   likeCount: number;
+  replies: ReplyData[];
 }
 
 interface TimelineProps {
@@ -75,7 +87,9 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       return;
     }
 
-    const postData = collection(db, 'posts');
+    const firestore = db as Firestore;
+
+    const postData = collection(firestore, 'posts');
     let q: Query<DocumentData> | null = null;
 
     if (origin === 'home') {
@@ -96,17 +110,39 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     if (q) {
       const unsubscribe = onSnapshot(
         q,
-        (querySnapshot: QuerySnapshot<DocumentData>) => {
-          const allPosts = querySnapshot.docs.map(
-            (doc: QueryDocumentSnapshot<DocumentData>) => ({
-              id: doc.id,
-              ...(doc.data() as Omit<PostData, 'id'>),
-              timestamp: doc.data().timestamp,
-              likeCount: doc.data().likeCount || 0,
+        async (querySnapshot: QuerySnapshot<DocumentData>) => {
+          const postsWithReplies = await Promise.all(
+            querySnapshot.docs.map(async (doc: QueryDocumentSnapshot<DocumentData>) => {
+              const postData = {
+                id: doc.id,
+                ...(doc.data() as Omit<PostData, 'id' | 'replies'>),
+                timestamp: doc.data().timestamp,
+                likeCount: doc.data().likeCount || 0,
+                replies: [],
+              };
+
+              // 返信を取得
+              const repliesQuery = query(
+                collection(firestore, 'replies'),
+                where('postId', '==', doc.id),
+                orderBy('createdAt', 'asc')
+              );
+
+              const repliesSnapshot = await getDocs(repliesQuery);
+              const replies = repliesSnapshot.docs.map((replyDoc: QueryDocumentSnapshot<DocumentData>) => ({
+                id: replyDoc.id,
+                ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
+                timestamp: replyDoc.data().createdAt.toDate().toLocaleString(),
+              }));
+
+              console.log(`Post ${doc.id} replies:`, replies); // デバッグログ
+
+              return { ...postData, replies };
             })
           );
 
-          setPosts(allPosts);
+          console.log('Posts with replies:', postsWithReplies); // デバッグログ
+          setPosts(postsWithReplies);
         },
         (error: FirestoreError) => {
           console.error('Firestore リスナーエラー:', error);
@@ -118,7 +154,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
         unsubscribe();
       };
     }
-  }, [loading, currentUser, origin, profileUid, uid])
+  }, [loading, currentUser, origin, profileUid, uid]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -138,6 +174,8 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
               ? post.timestamp.toDate().toLocaleString()
               : '';
 
+            console.log(`Rendering post ${post.id} with replies:`, post.replies); // デバッグログ
+
             return (
               <Post
                 key={post.id}
@@ -151,6 +189,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
                 postUid={post.uid}
                 timestamp={formattedDate}
                 likeCount={post.likeCount}
+                replies={post.replies}
               />
             );
           })
