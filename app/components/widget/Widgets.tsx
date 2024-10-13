@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search } from '@mui/icons-material';
 import { collection, query, getDocs, getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 
@@ -37,9 +36,8 @@ const Widgets: React.FC<WidgetsProps> = ({ className }) => {
   const router = useRouter();
 
   const firestore = getFirestore();
-  const auth = getAuth();
 
-  const searchUsers = async (term: string) => {
+  const searchUsers = useCallback(async (term: string) => {
     if (!term) {
       setUsers([]);
       setIsSearching(false);
@@ -63,14 +61,14 @@ const Widgets: React.FC<WidgetsProps> = ({ className }) => {
 
     setUsers(userList);
     setIsSearching(false);
-  };
+  }, [firestore]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       searchUsers(searchTerm);
     }, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [searchTerm, searchUsers]);
 
   const handleUserClick = (userId: string) => {
     setSearchTerm('');
