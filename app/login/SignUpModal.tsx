@@ -41,6 +41,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
       // Firestoreにユーザー情報を保存
       await setDoc(doc(db, 'users', user.uid), {
         username,
+        displayName: username,
         email,
         createdAt: new Date(),
         emailVerified: false,
@@ -85,7 +86,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
         <h2 className="text-2xl font-bold mb-8 text-white text-center">アカウント作成</h2>
         {message ? (
           <div>
-            <p className="text-green-500 mb-4">{message}</p>
+            <p className="text-white mb-9">{message}</p>
             <button onClick={onClose} className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
               閉じる
             </button>
