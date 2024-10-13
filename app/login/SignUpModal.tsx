@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, sendEmailVerification, AuthError } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { getFirebaseServices } from '../firebase';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -47,8 +48,6 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
 
       setMessage('アカウントが作成されました。確認メールを送信しましたので、メールを確認してアカウントを有効化してください。');
 
-      // モーダルを閉じるのではなく、メッセージを表示します
-      // onClose();
     } catch (error) {
       console.error('サインアップエラー:', error);
       if (error instanceof Error) {
@@ -75,9 +74,15 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">アカウント作成</h2>
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-30 flex justify-center items-center min-h-screen">
+      <div className="bg-black p-9 rounded-2xl w-[400px] max-w-[90vw] h-[400px] max-h-[90vh] relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 left-4 text-gray-400 hover:text-white"
+        >
+          <CloseIcon />
+        </button>
+        <h2 className="text-2xl font-bold mb-8 text-white text-center">アカウント作成</h2>
         {message ? (
           <div>
             <p className="text-green-500 mb-4">{message}</p>
@@ -86,38 +91,33 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSignUp}>
+          <form onSubmit={handleSignUp} className="flex flex-col items-center">
             <input
               type="text"
               placeholder="ユーザー名"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-2 mb-4 border rounded text-gray-800"
+              className="w-full p-2 mb-5 border border-gray-700 rounded text-white bg-black"
             />
             <input
               type="email"
               placeholder="メールアドレス"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 mb-4 border rounded text-gray-800"
+              className="w-full p-2 mb-5 border border-gray-700 rounded text-white bg-black"
             />
             <input
               type="password"
               placeholder="パスワード"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 mb-4 border rounded text-gray-800"
+              className="w-full p-2 mb-5 border border-gray-700 rounded text-white bg-black"
             />
             {error && <p className="text-red-500 mb-4">{error}</p>}
-            <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+            <button type="submit" className="w-[300px] bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 mt-8">
               登録
             </button>
           </form>
-        )}
-        {!message && (
-          <button onClick={onClose} className="mt-4 text-gray-600 hover:text-gray-800">
-            閉じる
-          </button>
         )}
       </div>
     </div>

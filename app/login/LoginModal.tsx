@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { getFirebaseServices } from '../firebase';
 import GoogleLoginButton from './GoogleLoginButton';
 import { User } from '@/app/types/user';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,7 +13,11 @@ interface LoginModalProps {
   onLoginSuccess: (user: User) => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
+const LoginModal: React.FC<LoginModalProps> = ({
+  isOpen,
+  onClose,
+  onLoginSuccess,
+}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +33,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
 
     try {
       const { auth } = getFirebaseServices();
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       onLoginSuccess(userCredential.user as User);
       onClose();
     } catch (error) {
@@ -44,7 +53,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
             setError('無効なメールアドレスです。');
             break;
           default:
-            setError('ログイン中にエラーが発生しました。もう一度お試しください。');
+            setError(
+              'ログイン中にエラーが発生しました。もう一度お試しください。'
+            );
         }
       } else {
         setError('不明なエラーが発生しました。もう一度お試しください。');
@@ -55,26 +66,35 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">ログイン</h2>
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-30 flex justify-center items-center min-h-screen">
+      <div className="bg-black p-9 rounded-2xl w-[400px] max-w-[90vw] h-[400px] max-h-[90vh] relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 left-4 text-gray-400 hover:text-white"
+        >
+          <CloseIcon />
+        </button>
+        <h2 className="text-2xl font-bold mb-8 text-white text-center">ログイン</h2>
         <form onSubmit={handleEmailLogin}>
           <input
             type="email"
             placeholder="メールアドレス"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 mb-4 border rounded text-gray-800"
+            className="w-full p-2 mb-5 border border-gray-700 rounded text-white bg-black"
           />
           <input
             type="password"
             placeholder="パスワード"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 mb-4 border rounded text-gray-800"
+            className="w-full p-2 mb-9 border border-gray-700 rounded text-white bg-black"
           />
           {error && <p className="text-red-500 mb-4">{error}</p>}
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mb-4">
+          <button
+            type="submit"
+            className="w-[300px] bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 mb-5"
+          >
             ログイン
           </button>
         </form>
@@ -82,9 +102,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
           onLoginSuccess={onLoginSuccess}
           onLoginError={(errorMessage) => setError(errorMessage)}
         />
-        <button onClick={onClose} className="w-full mt-4 text-gray-600 hover:text-gray-800">
-          閉じる
-        </button>
       </div>
     </div>
   );
