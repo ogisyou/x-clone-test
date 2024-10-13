@@ -15,7 +15,6 @@ import {
   Timestamp,
   Query,
   Firestore,
-  getDocs,
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import FlipMove from 'react-flip-move';
@@ -27,6 +26,8 @@ interface ReplyData {
   displayName: string;
   username: string;
   timestamp: string;
+  userId: string;
+  avatar?: string;
   postId: string;
 }
 
@@ -39,9 +40,11 @@ interface PostData {
   avatar: string;
   image: string;
   uid: string;
+  userId: string;
   timestamp: Timestamp;
   likeCount: number;
   replies: ReplyData[];
+  repliesUnsubscribe?: () => void;
 }
 
 interface TimelineProps {
@@ -113,35 +116,60 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
         async (querySnapshot: QuerySnapshot<DocumentData>) => {
           const postsWithReplies = await Promise.all(
             querySnapshot.docs.map(async (doc: QueryDocumentSnapshot<DocumentData>) => {
-              const postData = {
+              const postData: PostData = {
                 id: doc.id,
-                ...(doc.data() as Omit<PostData, 'id' | 'replies'>),
+                ...(doc.data() as Omit<PostData, 'id' | 'replies' | 'repliesUnsubscribe'>),
                 timestamp: doc.data().timestamp,
                 likeCount: doc.data().likeCount || 0,
                 replies: [],
+                userId: doc.data().userId || doc.data().uid,
               };
 
-              // 返信を取得
               const repliesQuery = query(
                 collection(firestore, 'replies'),
                 where('postId', '==', doc.id),
-                orderBy('createdAt', 'asc')
+                orderBy('createdAt', 'desc')
               );
 
-              const repliesSnapshot = await getDocs(repliesQuery);
-              const replies = repliesSnapshot.docs.map((replyDoc: QueryDocumentSnapshot<DocumentData>) => ({
-                id: replyDoc.id,
-                ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
-                timestamp: replyDoc.data().createdAt.toDate().toLocaleString(),
-              }));
+              // 返信のリアルタイムリスナーを設定
+              const repliesUnsubscribe = onSnapshot(repliesQuery, (repliesSnapshot) => {
+                const replies = repliesSnapshot.docs.map((replyDoc) => {
+                  const replyData = replyDoc.data();
+                  const createdAt = replyData.createdAt;
+                  let timestamp: string;
+                  
+                  if (createdAt instanceof Timestamp) {
+                    timestamp = createdAt.toDate().toLocaleString();
+                  } else if (createdAt && typeof createdAt.toDate === 'function') {
+                    timestamp = createdAt.toDate().toLocaleString();
+                  } else {
+                    timestamp = new Date().toLocaleString(); // フォールバック
+                    console.warn(`Invalid createdAt for reply ${replyDoc.id}`);
+                  }
 
-              console.log(`Post ${doc.id} replies:`, replies); // デバッグログ
+                  return {
+                    id: replyDoc.id,
+                    ...(replyData as Omit<ReplyData, 'id' | 'timestamp'>),
+                    timestamp,
+                    userId: replyData.userId || '',
+                  };
+                });
 
-              return { ...postData, replies };
+                console.log(`Post ${doc.id} replies:`, replies);
+
+                // 投稿の返信を更新
+                setPosts((prevPosts) =>
+                  prevPosts.map((post) =>
+                    post.id === doc.id ? { ...post, replies } : post
+                  )
+                );
+              });
+
+              return { ...postData, repliesUnsubscribe };
             })
           );
 
-          console.log('Posts with replies:', postsWithReplies); // デバッグログ
+          console.log('Posts with replies:', postsWithReplies);
           setPosts(postsWithReplies);
         },
         (error: FirestoreError) => {
@@ -152,6 +180,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       return () => {
         console.log('リスナー解除');
         unsubscribe();
+        posts.forEach((post) => post.repliesUnsubscribe && post.repliesUnsubscribe());
       };
     }
   }, [loading, currentUser, origin, profileUid, uid]);
@@ -174,7 +203,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
               ? post.timestamp.toDate().toLocaleString()
               : '';
 
-            console.log(`Rendering post ${post.id} with replies:`, post.replies); // デバッグログ
+            console.log(`Rendering post ${post.id} with replies:`, post.replies);
 
             return (
               <Post
@@ -187,6 +216,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
                 avatar={post.avatar}
                 image={post.image}
                 postUid={post.uid}
+                userId={post.userId}
                 timestamp={formattedDate}
                 likeCount={post.likeCount}
                 replies={post.replies}

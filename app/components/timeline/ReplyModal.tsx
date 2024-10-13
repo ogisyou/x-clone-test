@@ -3,6 +3,17 @@ import { Modal, Box, TextField, Button, Avatar, Snackbar } from '@mui/material';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, getFirestore, serverTimestamp } from 'firebase/firestore';
 
+interface ReplyData {
+  id: string;
+  text: string;
+  displayName: string;
+  username: string;
+  timestamp: string;
+  userId: string;
+  avatar?: string;
+  postId: string;
+}
+
 interface ReplyModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,9 +24,10 @@ interface ReplyModalProps {
     text: string;
     timestamp: string;
   };
+  onReplyAdded: (newReply: ReplyData) => void;
 }
 
-const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, originalPost }) => {
+const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, originalPost, onReplyAdded }) => {
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -36,9 +48,6 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
     setIsSubmitting(true);
 
     try {
-      console.log('Replying to post:', postId);
-      console.log('Reply text:', replyText);
-
       const replyData = {
         text: replyText,
         createdAt: serverTimestamp(),
@@ -46,14 +55,18 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
         postId: postId,
         displayName: user.displayName || 'Unknown User',
         username: user.email?.split('@')[0] || 'unknown',
-        avatar: user.photoURL || '', // ユーザーのアバター画像URLを追加
+        avatar: user.photoURL || '',
       };
-
-      console.log('Reply data to be saved:', replyData);
 
       const docRef = await addDoc(collection(firestore, 'replies'), replyData);
 
-      console.log('Reply saved with ID:', docRef.id);
+      const newReply: ReplyData = {
+        id: docRef.id,
+        ...replyData,
+        timestamp: new Date().toLocaleString(),
+      };
+
+      onReplyAdded(newReply);
 
       setReplyText('');
       setSnackbarMessage('返信が投稿されました。');
