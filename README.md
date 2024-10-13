@@ -10,7 +10,7 @@ X-clone は、リアルタイムの短文投稿ができる SNS プラットフ�
 
 開発期間：約 2 ヶ月
 
- <img width="1400" alt="スクリーンショット 2024-10-06" src="https://github.com/user-attachments/assets/b42bb0e8-a994-4244-857a-ebe90f5fa954">
+ <img width="1400" alt="スクリーンショット 2024-10-06" src="https://github.com/user-attachments/assets/d296651c-5c25-48ef-9c01-317b3a57d875">
  <img width="350" height="700" src= "https://github.com/user-attachments/assets/5cc394ed-b997-4896-ac6f-b0487b7070e7">
 
 [URL]
