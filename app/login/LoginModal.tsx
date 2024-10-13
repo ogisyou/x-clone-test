@@ -93,7 +93,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <button
             type="submit"
-            className="w-[300px] bg-blue-500 text-white py-3 rounded-full font-bold hover:bg-blue-600 mb-5"
+            className="w-[300px] max-w-[70vw] bg-blue-500 text-white py-3 rounded-full font-bold hover:bg-blue-600 mb-5"
           >
             ログイン
           </button>

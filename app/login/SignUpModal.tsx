@@ -114,7 +114,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
               className="w-full p-2 mb-5 border border-gray-700 rounded text-white bg-black"
             />
             {error && <p className="text-red-500 mb-4">{error}</p>}
-            <button type="submit" className="w-[300px]  font-bold bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 mt-8">
+            <button type="submit" className="w-[300px]  max-w-[70vw] font-bold bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 mt-8">
               登録
             </button>
           </form>

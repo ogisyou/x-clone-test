@@ -112,7 +112,7 @@ const GuestLoginButton: React.FC<GuestLoginButtonProps> = ({ onLoginSuccess, onL
 
   return (
     <button
-      className="w-[300px] bg-gray-500 text-white font-bold py-3 rounded-full hover:bg-gray-400 transition"
+      className="w-[300px] max-w-[80vw] bg-gray-500 text-white font-bold py-3 rounded-full hover:bg-gray-400 transition"
       onClick={handleGuestLogin}
       disabled={isLoading}
     >

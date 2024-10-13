@@ -84,7 +84,7 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess, o
 
   return (
     <button
-      className="w-[300px] bg-black text-blue-400 border border-gray-700 font-bold py-3 rounded-full hover:bg-gray-800 transition"
+      className="w-[300px] max-w-[70vw] bg-black text-blue-400 border border-gray-700 font-bold py-3 rounded-full hover:bg-gray-800 transition"
       onClick={loginInWithGoogle}
       disabled={isLoading}
     >
