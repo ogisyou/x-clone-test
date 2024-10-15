@@ -1,177 +1,58 @@
-# name: Firebase Functions と Vercel のデプロイ
+name: Vercel Next.js Deployment
 
-# on:
-#   push:
-#     branches:
-#       - main
-#   workflow_dispatch:
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-#       - name: Node.js のセットアップ
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: '20'
+      - name: Node.js のセットアップ
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-#       - name: 環境変数の設定
-#         run: |
-#           echo 'FIREBASE_CONFIG<<EOF' >> $GITHUB_ENV
-#           echo '${{ secrets.FIREBASE_CONFIG }}' >> $GITHUB_ENV
-#           echo 'EOF' >> $GITHUB_ENV
-#           echo "MY_FIREBASE_PROJECT_ID=${{ secrets.MY_FIREBASE_PROJECT_ID }}" >> $GITHUB_ENV
-#           echo "MY_FIREBASE_CLIENT_EMAIL=${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}" >> $GITHUB_ENV
-#           echo 'MY_FIREBASE_PRIVATE_KEY<<EOF' >> $GITHUB_ENV
-#           echo "${{ secrets.MY_FIREBASE_PRIVATE_KEY }}" >> $GITHUB_ENV
-#           echo 'EOF' >> $GITHUB_ENV
-#           echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
-#           echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
-#           echo "VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}" >> $GITHUB_ENV
+      - name: 環境変数の設定
+        run: |
+          echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
+          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
 
-#       - name: サービスアカウントキーのセットアップ
-#         run: |
-#           echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
-#           echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
+      - name: 依存関係のインストール
+        run: npm ci
 
-#       - name: 環境変数の確認
-#         run: |
-#           echo "FIREBASE_CONFIG は設定されています: ${{ env.FIREBASE_CONFIG != '' }}"
-#           echo "MY_FIREBASE_PROJECT_ID: ${{ env.MY_FIREBASE_PROJECT_ID }}"
-#           echo "MY_FIREBASE_CLIENT_EMAIL は設定されています: ${{ env.MY_FIREBASE_CLIENT_EMAIL != '' }}"
-#           echo "MY_FIREBASE_PRIVATE_KEY は設定されています: ${{ env.MY_FIREBASE_PRIVATE_KEY != '' }}"
-#           echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
-#           echo "VERCEL_ORG_ID は設定されています: ${{ env.VERCEL_ORG_ID != '' }}"
-#           echo "VERCEL_PROJECT_ID は設定されています: ${{ env.VERCEL_PROJECT_ID != '' }}"
-#           echo "VERCEL_TOKEN は設定されています: ${{ env.VERCEL_TOKEN != '' }}"
-#           echo "GOOGLE_APPLICATION_CREDENTIALS の内容:"
-#           cat $GOOGLE_APPLICATION_CREDENTIALS | jq 'del(.private_key)'
+      - name: Vercel CLI のインストール
+        run: npm install -g vercel
 
-#       - name: 環境変数の詳細確認
-#         run: |
-#           echo "環境変数の詳細:"
-#           for var in FIREBASE_CONFIG MY_FIREBASE_PROJECT_ID MY_FIREBASE_CLIENT_EMAIL MY_FIREBASE_PRIVATE_KEY GOOGLE_APPLICATION_CREDENTIALS VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN
-#           do
-#             value="${!var}"
-#             echo "$var:"
-#             echo "  長さ: ${#value}"
-#             echo "  最初の3文字: ${value:0:3}"
-#             echo "  最後の3文字: ${value: -3}"
-#             echo "---"
-#           done
+      - name: Vercel へのデプロイ
+        run: |
+          echo "Vercel デプロイを開始します..."
+          vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }})
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          echo "デプロイされた URL: $DEPLOYMENT_URL"
 
-#       - name: 依存関係のキャッシュ
-#         uses: actions/cache@v3
-#         with:
-#           path: ~/.npm
-#           key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-#           restore-keys: |
-#             ${{ runner.OS }}-node-
+      - name: デプロイメントチェック
+        run: |
+          echo "チェックする URL: $DEPLOYMENT_URL"
+          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
+          echo "HTTP ステータスコード: $HTTP_RESPONSE"
+          if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "204" ]; then
+            echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
+          else
+            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
+            curl -sS $DEPLOYMENT_URL
+            exit 1
+          fi
 
-#       - name: ルートの依存関係をインストール
-#         run: npm ci
-
-#       - name: Firebase CLI のインストール
-#         run: npm install -g firebase-tools
-
-#       - name: Next.js アプリのビルド
-#         run: npm run build:next
-#         env:
-#           CI: true
-
-#       - name: Functions のインストールとビルド
-#         run: |
-#           cd functions
-#           npm ci
-#           npm run build
-#           cp -r lib/* .
-
-#       - name: Firebase プロジェクトの設定
-#         run: firebase use ${{ secrets.MY_FIREBASE_PROJECT_ID }}
-#         env:
-#           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
-
-#       - name: Firebase 設定のデバッグ
-#         run: |
-#           echo "Firebase プロジェクトリスト:"
-#           firebase projects:list
-#           echo "現在のプロジェクト設定:"
-#           firebase use
-#         env:
-#           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
-
-#       - name: Firebase Functions のデプロイ
-#         run: |
-#           echo "Deploying with MY_FIREBASE_PROJECT_ID: $MY_FIREBASE_PROJECT_ID"
-#           firebase deploy --only functions --project $MY_FIREBASE_PROJECT_ID
-#         env:
-#           MY_FIREBASE_PROJECT_ID: ${{ secrets.MY_FIREBASE_PROJECT_ID }}
-#           MY_FIREBASE_CLIENT_EMAIL: ${{ secrets.MY_FIREBASE_CLIENT_EMAIL }}
-#           MY_FIREBASE_PRIVATE_KEY: ${{ secrets.MY_FIREBASE_PRIVATE_KEY }}
-
-#       - name: Vercel へのデプロイ
-#         env:
-#           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-#           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-#           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-#         run: |
-#           echo "Vercel デプロイを開始します..."
-#           echo "VERCEL_ORG_ID: $VERCEL_ORG_ID"
-#           echo "VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
-#           npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
-#           npx vercel build --prod --token $VERCEL_TOKEN
-#           DEPLOYMENT_OUTPUT=$(npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
-#           echo "デプロイ出力: $DEPLOYMENT_OUTPUT"
-#           # 出力を確認
-#           if [[ -z "$DEPLOYMENT_OUTPUT" ]]; then
-#             echo "エラー: DEPLOYMENT_OUTPUT が空です。デプロイに失敗した可能性があります。"
-#             exit 1
-#           fi
-#           DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -o 'https://.*vercel.app' | head -n1)
-#           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
-#           echo "設定された DEPLOYMENT_URL: $DEPLOYMENT_URL"
-
-
-#       - name: デプロイ後の待機
-#         run: sleep 30
-
-#       - name: デプロイメントチェック
-#         env:
-#           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-#         run: |
-#           echo "チェックする URL: $DEPLOYMENT_URL"
-#           HTTP_RESPONSE=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
-#           echo "HTTP ステータスコード: $HTTP_RESPONSE"
-#           if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "204" ]; then
-#             echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
-#           else
-#             echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
-#             curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" $DEPLOYMENT_URL
-#             exit 1
-#           fi
-          
-#       - name: Vercel CLI バージョン確認
-#         run: npx vercel --version
-        
-#       - name: Vercel ビルドログの確認
-#         if: failure()
-#         run: |
-#           echo "ビルドログを確認しています..."
-#           npx vercel inspect --logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
-                   
-#       - name: Vercel デプロイログの確認
-#         if: always()
-#         env:
-#           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-#         run: |
-#           echo "デプロイメントログを確認しています..."
-#           echo "DEPLOYMENT_URL: $DEPLOYMENT_URL"
-#           if [ -n "$DEPLOYMENT_URL" ]; then
-#             npx vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
-#           else
-#             echo "エラー: DEPLOYMENT_URL が設定されていません"
-#             npx vercel ls --token $VERCEL_TOKEN
-#           fi
+      - name: Vercel デプロイログの確認
+        if: always()
+        run: |
+          echo "デプロイメントログを確認しています..."
+          vercel logs $DEPLOYMENT_URL --token ${{ secrets.VERCEL_TOKEN }}
