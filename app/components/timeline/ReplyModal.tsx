@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, TextField, Button, Avatar, Snackbar } from '@mui/material';
-import { getAuth } from 'firebase/auth';
 import { addDoc, collection, getFirestore, serverTimestamp, doc, getDoc } from 'firebase/firestore';
-import { useAvatar } from '@/app/contexts/AvatarContext';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 interface ReplyData {
   id: string;
@@ -33,38 +32,28 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [userInfo, setUserInfo] = useState<{ displayName: string; username: string } | null>(null);
-  const { avatar } = useAvatar(); // AvatarContext から avatar を取得
-  const auth = getAuth();
+  const { user } = useAuth();  // AuthContext から現在のユーザー情報を取得
+  const [currentUserInfo, setCurrentUserInfo] = useState<{displayName: string; username: string; avatar: string} | null>(null);
   const firestore = getFirestore();
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      const user = auth.currentUser;
+    const fetchCurrentUserInfo = async () => {
       if (user) {
         const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserInfo({
-            displayName: userData.displayName || 'Unknown User',
-            username: userData.username || 'unknown',
-          });
-        }
+        const userData = userDoc.data();
+        setCurrentUserInfo({
+          displayName: userData?.displayName || user.displayName || 'Unknown User',
+          username: userData?.username || user.displayName || 'unknown',
+          avatar: userData?.avatarURL || '',
+        });
       }
     };
 
-    fetchUserInfo();
-  }, [auth, firestore]);
+    fetchCurrentUserInfo();
+  }, [user, firestore]);
 
   const handleReply = async () => {
-    if (replyText.trim() === '') return;
-
-    const user = auth.currentUser;
-    if (!user || !userInfo) {
-      setSnackbarMessage('ユーザー情報を取得できませんでした。');
-      setSnackbarOpen(true);
-      return;
-    }
+    if (replyText.trim() === '' || !user || !currentUserInfo) return;
 
     setIsSubmitting(true);
 
@@ -74,9 +63,9 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
         createdAt: serverTimestamp(),
         userId: user.uid,
         postId: postId,
-        displayName: userInfo.displayName,
-        username: userInfo.username,
-        avatar: avatar, // AvatarContext から取得したアバターを使用
+        displayName: currentUserInfo.displayName,
+        username: currentUserInfo.username,
+        avatar: currentUserInfo.avatar,
       };
 
       const docRef = await addDoc(collection(firestore, 'replies'), replyData);
@@ -120,9 +109,9 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
         >
           <div className="mb-4">
             <div className="flex items-center mb-2">
-              <Avatar src={avatar} className="w-8 h-8 mr-2" />
-              <span className="font-bold">{originalPost.displayName}</span>
-              <span className="text-gray-500 ml-2">@{originalPost.username}</span>
+              <Avatar src={currentUserInfo?.avatar} className="w-8 h-8 mr-2" />
+              <span className="font-bold">{currentUserInfo?.displayName}</span>
+              <span className="text-gray-500 ml-2">@{currentUserInfo?.username}</span>
             </div>
             <p>{originalPost.text}</p>
             <p className="text-gray-500 text-sm mt-1">{originalPost.timestamp}</p>
@@ -141,7 +130,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
             <Button
               variant="contained"
               onClick={handleReply}
-              disabled={replyText.trim() === '' || isSubmitting}
+              disabled={replyText.trim() === '' || isSubmitting || !currentUserInfo}
             >
               {isSubmitting ? '投稿中...' : '返信'}
             </Button>
