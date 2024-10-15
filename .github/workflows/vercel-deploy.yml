@@ -22,8 +22,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Vercel CLI のインストール
-        run: npm install -g vercel
+      - name: Vercel CLI のインストールと更新
+        run: |
+          npm install -g vercel@latest
+          vercel --version
 
       - name: デバッグ情報の表示
         run: |
@@ -44,13 +46,16 @@ jobs:
         if: env.DEPLOYMENT_URL
         run: |
           echo "チェックする URL: ${{ env.DEPLOYMENT_URL }}"
-          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" ${{ env.DEPLOYMENT_URL }})
-          echo "HTTP ステータスコード: $HTTP_RESPONSE"
-          if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "204" ]; then
-            echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
+          timeout 2m bash -c '
+            until curl -s -o /dev/null -w "%{http_code}" ${{ env.DEPLOYMENT_URL }} | grep -q "200\|204"; do
+              echo "Waiting for deployment..."
+              sleep 10
+            done
+          '
+          if [ $? -eq 0 ]; then
+            echo "デプロイメントが成功しました。"
           else
-            echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
-            curl -sS ${{ env.DEPLOYMENT_URL }}
+            echo "デプロイメントが失敗しました。タイムアウトまたはエラーが発生しました。"
             exit 1
           fi
 
