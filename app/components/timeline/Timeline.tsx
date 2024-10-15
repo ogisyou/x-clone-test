@@ -4,16 +4,10 @@ import Post from './Post';
 import { db, auth } from '../../firebase';
 import {
   collection,
-  onSnapshot,
+  getDocs, // ここを getDocs に変更
   orderBy,
   query,
   where,
-  QuerySnapshot,
-  QueryDocumentSnapshot,
-  FirestoreError,
-  DocumentData,
-  Timestamp,
-  Query,
   Firestore,
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
@@ -41,10 +35,9 @@ interface PostData {
   image: string;
   uid: string;
   userId: string;
-  timestamp: Timestamp;
+  timestamp: string;
   likeCount: number;
   replies: ReplyData[];
-  repliesUnsubscribe?: () => void;
 }
 
 interface TimelineProps {
@@ -93,7 +86,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     const firestore = db as Firestore;
 
     const postData = collection(firestore, 'posts');
-    let q: Query<DocumentData> | null = null;
+    let q = null;
 
     if (origin === 'home') {
       q = query(
@@ -111,77 +104,43 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     }
 
     if (q) {
-      const unsubscribe = onSnapshot(
-        q,
-        async (querySnapshot: QuerySnapshot<DocumentData>) => {
-          const postsWithReplies = await Promise.all(
-            querySnapshot.docs.map(async (doc: QueryDocumentSnapshot<DocumentData>) => {
-              const postData: PostData = {
-                id: doc.id,
-                ...(doc.data() as Omit<PostData, 'id' | 'replies' | 'repliesUnsubscribe'>),
-                timestamp: doc.data().timestamp,
-                likeCount: doc.data().likeCount || 0,
-                replies: [],
-                userId: doc.data().userId || doc.data().uid,
-              };
+      const fetchPosts = async () => {
+        const querySnapshot = await getDocs(q);
+        const postsWithReplies = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const postData: PostData = {
+              id: doc.id,
+              ...(doc.data() as Omit<PostData, 'id' | 'replies'>),
+              timestamp: doc.data().timestamp.toDate().toLocaleString(),
+              likeCount: doc.data().likeCount || 0,
+              replies: [],
+              userId: doc.data().userId || doc.data().uid,
+            };
 
-              const repliesQuery = query(
-                collection(firestore, 'replies'),
-                where('postId', '==', doc.id),
-                orderBy('createdAt', 'desc')
-              );
+            const repliesQuery = query(
+              collection(firestore, 'replies'),
+              where('postId', '==', doc.id),
+              orderBy('createdAt', 'asc')
+            );
 
-              // 返信のリアルタイムリスナーを設定
-              const repliesUnsubscribe = onSnapshot(repliesQuery, (repliesSnapshot) => {
-                const replies = repliesSnapshot.docs.map((replyDoc) => {
-                  const replyData = replyDoc.data();
-                  const createdAt = replyData.createdAt;
-                  let timestamp: string;
-                  
-                  if (createdAt instanceof Timestamp) {
-                    timestamp = createdAt.toDate().toLocaleString();
-                  } else if (createdAt && typeof createdAt.toDate === 'function') {
-                    timestamp = createdAt.toDate().toLocaleString();
-                  } else {
-                    timestamp = new Date().toLocaleString(); // フォールバック
-                    console.warn(`Invalid createdAt for reply ${replyDoc.id}`);
-                  }
+            const repliesSnapshot = await getDocs(repliesQuery);
+            const replies = repliesSnapshot.docs.map((replyDoc) => ({
+              id: replyDoc.id,
+              ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
+              timestamp: replyDoc.data().createdAt.toDate().toLocaleString(),
+            }));
 
-                  return {
-                    id: replyDoc.id,
-                    ...(replyData as Omit<ReplyData, 'id' | 'timestamp'>),
-                    timestamp,
-                    userId: replyData.userId || '',
-                  };
-                });
+            return { ...postData, replies };
+          })
+        );
 
-                console.log(`Post ${doc.id} replies:`, replies);
-
-                // 投稿の返信を更新
-                setPosts((prevPosts) =>
-                  prevPosts.map((post) =>
-                    post.id === doc.id ? { ...post, replies } : post
-                  )
-                );
-              });
-
-              return { ...postData, repliesUnsubscribe };
-            })
-          );
-
-          console.log('Posts with replies:', postsWithReplies);
-          setPosts(postsWithReplies);
-        },
-        (error: FirestoreError) => {
-          console.error('Firestore リスナーエラー:', error);
-        }
-      );
-
-      return () => {
-        console.log('リスナー解除');
-        unsubscribe();
-        posts.forEach((post) => post.repliesUnsubscribe && post.repliesUnsubscribe());
+        console.log('Posts with replies:', postsWithReplies);
+        setPosts(postsWithReplies);
       };
+
+      fetchPosts().catch((error) => {
+        console.error('データ取得エラー:', error);
+      });
     }
   }, [loading, currentUser, origin, profileUid, uid]);
 
@@ -198,31 +157,23 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       <TweetBox origin={origin} />
       <FlipMove>
         {posts.length > 0 ? (
-          posts.map((post) => {
-            const formattedDate = post.timestamp
-              ? post.timestamp.toDate().toLocaleString()
-              : '';
-
-            console.log(`Rendering post ${post.id} with replies:`, post.replies);
-
-            return (
-              <Post
-                key={post.id}
-                id={post.id}
-                displayName={post.displayName}
-                username={post.username}
-                verified={post.verified}
-                text={post.text}
-                avatar={post.avatar}
-                image={post.image}
-                postUid={post.uid}
-                userId={post.userId}
-                timestamp={formattedDate}
-                likeCount={post.likeCount}
-                replies={post.replies}
-              />
-            );
-          })
+          posts.map((post) => (
+            <Post
+              key={post.id}
+              id={post.id}
+              displayName={post.displayName}
+              username={post.username}
+              verified={post.verified}
+              text={post.text}
+              avatar={post.avatar}
+              image={post.image}
+              postUid={post.uid}
+              userId={post.userId}
+              timestamp={post.timestamp}
+              likeCount={post.likeCount}
+              replies={post.replies}
+            />
+          ))
         ) : (
           <p className="text-gray-500">投稿がありません</p>
         )}

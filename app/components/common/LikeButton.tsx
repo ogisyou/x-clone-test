@@ -16,10 +16,10 @@ const LikeButton: React.FC<LikeButtonProps> = ({ postId, initialLikeCount }) => 
   const auth = getAuth();
   const currentUser = auth.currentUser;
 
-  useEffect(() => {
-    console.log(`LikeButton ${postId} initialLikeCount:`, initialLikeCount);
-    console.log(`LikeButton ${postId} initialLikeCount type:`, typeof initialLikeCount);
-  }, [postId, initialLikeCount]);
+  // useEffect(() => {
+  //   console.log(`LikeButton ${postId} initialLikeCount:`, initialLikeCount);
+  //   console.log(`LikeButton ${postId} initialLikeCount type:`, typeof initialLikeCount);
+  // }, [postId, initialLikeCount]);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
