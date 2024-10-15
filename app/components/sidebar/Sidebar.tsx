@@ -20,10 +20,10 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'; 
 import { useRouter } from 'next/navigation';
 import XIcon from '@mui/icons-material/X';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, Firestore, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 import '../../globals.css';
@@ -43,25 +43,28 @@ interface CurrentUser {
 }
 
 // Sidebar コンポーネント
-function Sidebar({ username,className }: SidebarProps) {
-  // 修正: className を受け取る
+function Sidebar({ username, className }: SidebarProps) {
   const [avatar, setAvatar] = useState<string>('');
   const auth = getAuth();
   const router = useRouter();
   const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true); // ローディング状態を追加
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const authUser = auth.currentUser;
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
 
-        if (authUser && db) {
-          const userDoc = doc(db, 'users', authUser.uid);
+      if (authUser) {
+        // ユーザーがログインしている場合
+        try {
+          const userDoc = doc(db as Firestore, 'users', authUser.uid);
           const userSnap = await getDoc(userDoc);
+
 
           if (userSnap.exists()) {
             const userData = userSnap.data();
+
+
             setCurrentUser({
               uid: authUser.uid,
               displayName: authUser.displayName || '',
@@ -71,22 +74,23 @@ function Sidebar({ username,className }: SidebarProps) {
           } else {
             setCurrentUser({ uid: authUser.uid, displayName: '' });
           }
-        } else {
-          // ゲストユーザー
-          setCurrentUser({ uid: 'guest', displayName: '' });
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+      } else {
+        // ユーザーがログインしていない場合（ゲストユーザー）
+        setCurrentUser({ uid: 'guest', displayName: '' });
       }
-    };
+      setLoading(false); // ローディング完了
+    });
 
-    fetchUserData();
+    // クリーンアップ関数
+    return () => unsubscribe();
   }, [auth]);
 
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
-        // ローカルストレージの認証情報をクリア
         localStorage.removeItem('isAuth');
         localStorage.removeItem('uid');
         router.push('/login');
@@ -109,15 +113,20 @@ function Sidebar({ username,className }: SidebarProps) {
     setOpenLogoutDialog(false);
   };
 
-  if (!currentUser) {
-    return null; // ローディング中は表示しない
+  if (loading) {
+    return <div>Loading...</div>; // ローディング中の表示
   }
+
+  if (!currentUser) {
+    return null; // ローディング完了後、ユーザー情報がない場合は何も表示しない
+  }
+
 
   return (
     <div
-      className={` hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5 ${className}`}
+      className={`hidden sm:block sm:text-2xl sm:font-bold border-r sm:border-gray-700 sm:flex-[0.2] xl:min-w-[250px] pr-5 ${className}`}
     >
-      <div className="flex items-center ml-6 mb-3 mt-5 ">
+      <div className="flex items-center ml-6 mb-3 mt-5">
         <Link
           href={`/home/${currentUser.uid}`} // href 属性を使用
           className="flex items-center p-3 w-full rounded-full hover:bg-gray-800"
@@ -187,7 +196,7 @@ function Sidebar({ username,className }: SidebarProps) {
         <div className="hidden xl:block">
           <Button
             variant="outlined"
-            className=" !bg-blue-400 !mt-8 !border-none !h-12 !w-full custom-button"
+            className="!bg-blue-400 !mt-8 !border-none !h-12 !w-full custom-button"
           >
             ポストする
           </Button>

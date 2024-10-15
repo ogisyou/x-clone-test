@@ -32,7 +32,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const { user } = useAuth();  // AuthContext から現在のユーザー情報を取得
+  const { user } = useAuth();  
   const [currentUserInfo, setCurrentUserInfo] = useState<{displayName: string; username: string; avatar: string} | null>(null);
   const firestore = getFirestore();
 
