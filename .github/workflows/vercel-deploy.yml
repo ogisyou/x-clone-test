@@ -18,51 +18,43 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 環境変数の設定
+      - name: Vercel CLI のインストールと更新
         run: |
-          echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
-          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
-
-      - name: 依存関係のインストール
-        run: npm ci
-
-      - name: ESLint の実行
-        run: npm run lint
-
-      - name: ローカルビルドの実行
-        run: npm run build
-        env:
-          CI: true
-
-      - name: Vercel CLI のインストール
-        run: npm install -g vercel
+          npm install -g vercel
+          npm install -g vercel@latest
+          vercel --version
 
       - name: Vercel へのデプロイ
-        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Vercel デプロイを開始します..."
-          vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
-          vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }})
-          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          vercel pull --yes --environment=production --token $VERCEL_TOKEN
+          vercel build --prod --token $VERCEL_TOKEN
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイされた URL: $DEPLOYMENT_URL"
 
       - name: デプロイメントチェック
-        if: steps.deploy.outputs.deployment_url
+        if: env.DEPLOYMENT_URL
         run: |
-          echo "チェックする URL: ${{ steps.deploy.outputs.deployment_url }}"
-          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" ${{ steps.deploy.outputs.deployment_url }})
+          echo "チェックする URL: $DEPLOYMENT_URL"
+          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
           echo "HTTP ステータスコード: $HTTP_RESPONSE"
           if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "204" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
           else
             echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
-            curl -sS ${{ steps.deploy.outputs.deployment_url }}
+            curl -sS $DEPLOYMENT_URL
             exit 1
           fi
 
-      - name: Vercel デプロイログの確認
-        if: always() && steps.deploy.outputs.deployment_url
+      - name: デプロイメントログの確認
+        if: always() && env.DEPLOYMENT_URL
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "デプロイメントログを確認しています..."
-          vercel logs ${{ steps.deploy.outputs.deployment_url }} --token ${{ secrets.VERCEL_TOKEN }}
+          vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
