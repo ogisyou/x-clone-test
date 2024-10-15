@@ -156,14 +156,12 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
               <BookmarkBorderIcon className="text-base sm:text-xl" />
               <PublishOutlined className="text-base sm:text-xl" />
             </div>
-            {!isReply && (
+            {!isReply && repliesCount > 0 && (
               <button
                 onClick={onToggleReplies}
                 className="text-blue-400 hover:underline"
               >
-                {showReplies
-                  ? '返信を非表示'
-                  : `${repliesCount}件の返信を表示`}
+                {showReplies ? '返信を非表示' : `${repliesCount}件の返信を表示`}
               </button>
             )}
           </div>
