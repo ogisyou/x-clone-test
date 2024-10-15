@@ -166,10 +166,10 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
                   onLikeToggle={(liked) => setIsLiked(liked)}
                 />
                 <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                  {isLiked ? 'いいねを取り消す' : 'いいね'}
+                  いいね
                 </span>
               </div>
-              <Tooltip title="表示" arrow>
+              <Tooltip title="アナリティクス" arrow>
                 <div className="flex items-center group cursor-pointer">
                   <BarChartIcon className="text-base sm:text-xl group-hover:text-blue-400 transition-colors duration-200" />
                 </div>
@@ -181,11 +181,11 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
                     ブックマーク
                   </span>
                 </div>
-                <Tooltip title="共有" arrow>
+
                   <div className="flex items-center group cursor-pointer">
                     <PublishOutlined className="text-base sm:text-xl group-hover:text-blue-400 transition-colors duration-200" />
                   </div>
-                </Tooltip>
+
               </div>
               {!isReply && repliesCount > 0 && (
                 <button
