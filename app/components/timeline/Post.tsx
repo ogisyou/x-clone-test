@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from 'react';
-import { Avatar } from '@mui/material';
+import { Avatar, Tooltip } from '@mui/material';
 import VerifiedUser from '@mui/icons-material/VerifiedUser';
 import {
   ChatBubbleOutline,
@@ -99,76 +99,110 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
     onToggleReplies,
     showReplies,
     repliesCount,
-  }) => (
-    <div className="flex flex-col items-start border-b border-gray-700 px-3 pt-1">
-      <div className="flex w-full">
-        <div className="mt-3 mr-4">
-          <Avatar
-            className={`w-12 h-12 ${data.avatar ? 'bg-white' : ''}`}
-            src={data.avatar}
-          />
-        </div>
-        <div className="flex-1">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm mb-1">
-              {data.displayName}
-              <span className="font-semibold text-xs text-gray-500 ml-2">
-                {!isReply && 'verified' in data && data.verified && (
-                  <VerifiedUser className="text-twitter-color !text-sm" />
-                )}{' '}
-                @{data.username} <span className="ml-3">{data.timestamp}</span>
-              </span>
-            </h3>
+  }) => {
+    const [isLiked, setIsLiked] = useState(false);
 
-            {currentUser?.uid === data.userId && (
-              <div>
-                <button
-                  onClick={() => onDelete(data.id, isReply)}
-                  className="text-sm text-white bg-black py-1 px-0 rounded hover:bg-gray-700"
-                >
-                  削除
-                </button>
-              </div>
-            )}
+    return (
+      <div className="flex flex-col items-start border-b border-gray-700 px-3 pt-1">
+        <div className="flex w-full">
+          <div className="mt-3 mr-4">
+            <Avatar
+              className={`w-12 h-12 ${data.avatar ? 'bg-white' : ''}`}
+              src={data.avatar}
+            />
           </div>
-          <p className="text-sm mb-2">{data.text}</p>
-          {!isReply && 'image' in data && data.image && (
-            <Image
-              className="rounded-xl"
-              src={data.image}
-              width={150}
-              height={150}
-              alt="投稿画像"
-            />
-          )}
-          <div className="flex justify-between mt-5 text-white">
-            <ChatBubbleOutline
-              className="text-base sm:text-xl cursor-pointer"
-              onClick={onReplyClick}
-            />
-            <Repeat className="text-base sm:text-xl" />
-            <LikeButton
-              postId={data.id}
-              initialLikeCount={isReply ? 0 : (data as PostData).likeCount}
-            />
-            <BarChartIcon className="text-base sm:text-xl" />
-            <div className="flex space-x-2">
-              <BookmarkBorderIcon className="text-base sm:text-xl" />
-              <PublishOutlined className="text-base sm:text-xl" />
+          <div className="flex-1">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm mb-1">
+                {data.displayName}
+                <span className="font-semibold text-xs text-gray-500 ml-2">
+                  {!isReply && 'verified' in data && data.verified && (
+                    <VerifiedUser className="text-twitter-color !text-sm" />
+                  )}{' '}
+                  @{data.username}{' '}
+                  <span className="ml-3">{data.timestamp}</span>
+                </span>
+              </h3>
+
+              {currentUser?.uid === data.userId && (
+                <div>
+                  <button
+                    onClick={() => onDelete(data.id, isReply)}
+                    className="text-sm text-white bg-black py-1 px-0 rounded hover:bg-gray-700"
+                  >
+                    削除
+                  </button>
+                </div>
+              )}
             </div>
-            {!isReply && repliesCount > 0 && (
-              <button
-                onClick={onToggleReplies}
-                className="text-blue-400 hover:underline"
-              >
-                {showReplies ? '返信を非表示' : `${repliesCount}件の返信を表示`}
-              </button>
+            <p className="text-sm mb-2">{data.text}</p>
+            {!isReply && 'image' in data && data.image && (
+              <Image
+                className="rounded-xl"
+                src={data.image}
+                width={150}
+                height={150}
+                alt="投稿画像"
+              />
             )}
+            <div className="flex justify-between mt-5 text-white w-full">
+              <Tooltip title="返信" arrow>
+                <div className="flex items-center group cursor-pointer">
+                  <ChatBubbleOutline
+                    className="text-base sm:text-xl group-hover:text-blue-400 transition-colors duration-200"
+                    onClick={onReplyClick}
+                  />
+                </div>
+              </Tooltip>
+              <Tooltip title="リツイート" arrow>
+                <div className="flex items-center group cursor-pointer">
+                  <Repeat className="text-base sm:text-xl group-hover:text-green-400 transition-colors duration-200" />
+                </div>
+              </Tooltip>
+              <div className="group relative cursor-pointer">
+                <LikeButton
+                  postId={data.id}
+                  initialLikeCount={isReply ? 0 : (data as PostData).likeCount}
+                  onLikeToggle={(liked) => setIsLiked(liked)}
+                />
+                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                  {isLiked ? 'いいねを取り消す' : 'いいね'}
+                </span>
+              </div>
+              <Tooltip title="表示" arrow>
+                <div className="flex items-center group cursor-pointer">
+                  <BarChartIcon className="text-base sm:text-xl group-hover:text-blue-400 transition-colors duration-200" />
+                </div>
+              </Tooltip>
+              <div className="flex space-x-2">
+                <div className="group relative cursor-pointer">
+                  <BookmarkBorderIcon className="text-base sm:text-xl group-hover:text-blue-400 transition-colors duration-200" />
+                  <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                    ブックマーク
+                  </span>
+                </div>
+                <Tooltip title="共有" arrow>
+                  <div className="flex items-center group cursor-pointer">
+                    <PublishOutlined className="text-base sm:text-xl group-hover:text-blue-400 transition-colors duration-200" />
+                  </div>
+                </Tooltip>
+              </div>
+              {!isReply && repliesCount > 0 && (
+                <button
+                  onClick={onToggleReplies}
+                  className="text-blue-400 hover:underline"
+                >
+                  {showReplies
+                    ? '返信を非表示'
+                    : `${repliesCount}件の返信を表示`}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div ref={ref}>
