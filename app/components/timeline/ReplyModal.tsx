@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Box, TextField, Button, Avatar, Snackbar } from '@mui/material';
 import { getAuth } from 'firebase/auth';
-import { addDoc, collection, getFirestore, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { useAvatar } from '@/app/contexts/AvatarContext';
 
 interface ReplyData {
   id: string;
@@ -32,15 +33,35 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [userInfo, setUserInfo] = useState<{ displayName: string; username: string } | null>(null);
+  const { avatar } = useAvatar(); // AvatarContext から avatar を取得
   const auth = getAuth();
   const firestore = getFirestore();
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserInfo({
+            displayName: userData.displayName || 'Unknown User',
+            username: userData.username || 'unknown',
+          });
+        }
+      }
+    };
+
+    fetchUserInfo();
+  }, [auth, firestore]);
 
   const handleReply = async () => {
     if (replyText.trim() === '') return;
 
     const user = auth.currentUser;
-    if (!user) {
-      setSnackbarMessage('ユーザーがログインしていません。');
+    if (!user || !userInfo) {
+      setSnackbarMessage('ユーザー情報を取得できませんでした。');
       setSnackbarOpen(true);
       return;
     }
@@ -53,9 +74,9 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
         createdAt: serverTimestamp(),
         userId: user.uid,
         postId: postId,
-        displayName: user.displayName || 'Unknown User',
-        username: user.email?.split('@')[0] || 'unknown',
-        avatar: user.photoURL || '',
+        displayName: userInfo.displayName,
+        username: userInfo.username,
+        avatar: avatar, // AvatarContext から取得したアバターを使用
       };
 
       const docRef = await addDoc(collection(firestore, 'replies'), replyData);
@@ -99,7 +120,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
         >
           <div className="mb-4">
             <div className="flex items-center mb-2">
-              <Avatar className="w-8 h-8 mr-2" />
+              <Avatar src={avatar} className="w-8 h-8 mr-2" />
               <span className="font-bold">{originalPost.displayName}</span>
               <span className="text-gray-500 ml-2">@{originalPost.username}</span>
             </div>
