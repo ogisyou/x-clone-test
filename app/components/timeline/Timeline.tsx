@@ -4,11 +4,15 @@ import Post from './Post';
 import { db, auth } from '../../firebase';
 import {
   collection,
-  getDocs, // ここを getDocs に変更
+  getDocs,
+  onSnapshot,
   orderBy,
   query,
   where,
   Firestore,
+  QuerySnapshot,
+  DocumentData,
+  Query
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import FlipMove from 'react-flip-move';
@@ -38,6 +42,7 @@ interface PostData {
   timestamp: string;
   likeCount: number;
   replies: ReplyData[];
+  repliesUnsubscribe?: () => void;
 }
 
 interface TimelineProps {
@@ -86,7 +91,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
     const firestore = db as Firestore;
 
     const postData = collection(firestore, 'posts');
-    let q = null;
+    let q: Query<DocumentData> | null = null;
 
     if (origin === 'home') {
       q = query(
@@ -103,45 +108,89 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       );
     }
 
-    if (q) {
-      const fetchPosts = async () => {
-        const querySnapshot = await getDocs(q);
-        const postsWithReplies = await Promise.all(
-          querySnapshot.docs.map(async (doc) => {
-            const postData: PostData = {
-              id: doc.id,
-              ...(doc.data() as Omit<PostData, 'id' | 'replies'>),
-              timestamp: doc.data().timestamp.toDate().toLocaleString(),
-              likeCount: doc.data().likeCount || 0,
-              replies: [],
-              userId: doc.data().userId || doc.data().uid,
-            };
-
-            const repliesQuery = query(
-              collection(firestore, 'replies'),
-              where('postId', '==', doc.id),
-              orderBy('createdAt', 'asc')
-            );
-
-            const repliesSnapshot = await getDocs(repliesQuery);
-            const replies = repliesSnapshot.docs.map((replyDoc) => ({
-              id: replyDoc.id,
-              ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
-              timestamp: replyDoc.data().createdAt.toDate().toLocaleString(),
-            }));
-
-            return { ...postData, replies };
-          })
-        );
-
-        console.log('Posts with replies:', postsWithReplies);
-        setPosts(postsWithReplies);
-      };
-
-      fetchPosts().catch((error) => {
-        console.error('データ取得エラー:', error);
-      });
+    if (!q) {
+      console.error('クエリが設定されていません');
+      return;
     }
+
+    const fetchInitialPosts = async () => {
+      const querySnapshot = await getDocs(q);
+      const initialPostsWithReplies = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const data = doc.data();
+          const postData: PostData = {
+            id: doc.id,
+            ...(data as Omit<PostData, 'id' | 'replies'>),
+            timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : '不明な時間', // null チェック
+            likeCount: data.likeCount || 0,
+            replies: [],
+            userId: data.userId || data.uid,
+          };
+          
+          const repliesQuery = query(
+            collection(firestore, 'replies'),
+            where('postId', '==', doc.id),
+            orderBy('createdAt', 'asc')
+          );
+    
+          const repliesSnapshot = await getDocs(repliesQuery);
+          const replies = repliesSnapshot.docs.map((replyDoc) => ({
+            id: replyDoc.id,
+            ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
+
+            timestamp: replyDoc.data().createdAt
+              ? replyDoc.data().createdAt.toDate().toLocaleString()
+              : '日時不明',
+          }));
+    
+          return { ...postData, replies };
+        })
+      );
+      setPosts(initialPostsWithReplies);
+    };
+
+    fetchInitialPosts().catch((error) => {
+      console.error('データ取得エラー:', error);
+    });
+
+    const unsubscribe = onSnapshot(q, async (querySnapshot: QuerySnapshot<DocumentData>) => {
+      const postsWithReplies = await Promise.all(
+        querySnapshot.docs.map(async (doc: DocumentData) => {
+          const data = doc.data();
+          const postData: PostData = {
+            id: doc.id,
+            ...(data as Omit<PostData, 'id' | 'replies'>),
+            timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : '不明な時間', // null チェック
+            likeCount: data.likeCount || 0,
+            replies: [],
+            userId: data.userId || data.uid,
+          };
+
+          const repliesQuery = query(
+            collection(firestore, 'replies'),
+            where('postId', '==', doc.id),
+            orderBy('createdAt', 'asc')
+          );
+
+          const repliesSnapshot = await getDocs(repliesQuery);
+          const replies = repliesSnapshot.docs.map((replyDoc) => ({
+            id: replyDoc.id,
+            ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
+            timestamp: replyDoc.data().createdAt ? replyDoc.data().createdAt.toDate().toLocaleString() : '日時不明', // null チェック
+          }));
+
+          return { ...postData, replies };
+        })
+      );
+
+
+      setPosts(postsWithReplies);
+    });
+
+    return () => {
+      console.log('リスナー解除');
+      unsubscribe();
+    };
   }, [loading, currentUser, origin, profileUid, uid]);
 
   if (loading) {
