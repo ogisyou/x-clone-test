@@ -45,6 +45,9 @@ interface PostContentProps {
   data: PostData | ReplyData;
   onDelete: (id: string, isReply: boolean) => Promise<void>;
   onReplyClick: () => void;
+  onToggleReplies: () => void;
+  showReplies: boolean;
+  repliesCount: number;
 }
 
 const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
@@ -54,8 +57,6 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
   const auth = getAuth();
   const currentUser = auth.currentUser;
   const firestore = getFirestore();
-
-  // console.log(`Post ${props.id} component received replies:`, props.replies);
 
   const handleDelete = async (docId: string, isReply: boolean = false) => {
     try {
@@ -95,6 +96,9 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
     data,
     onDelete,
     onReplyClick,
+    onToggleReplies,
+    showReplies,
+    repliesCount,
   }) => (
     <div className="flex flex-col items-start border-b border-gray-700 px-3 pt-1">
       <div className="flex w-full">
@@ -152,14 +156,16 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
               <BookmarkBorderIcon className="text-base sm:text-xl" />
               <PublishOutlined className="text-base sm:text-xl" />
             </div>
-        <button
-          onClick={toggleReplies}
-          className="text-blue-400 hover:underline"
-        >
-          {showReplies
-            ? '返信を非表示'
-            : `${localReplies.length}件の返信を表示`}
-        </button>
+            {!isReply && (
+              <button
+                onClick={onToggleReplies}
+                className="text-blue-400 hover:underline"
+              >
+                {showReplies
+                  ? '返信を非表示'
+                  : `${repliesCount}件の返信を表示`}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -173,17 +179,12 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
         data={props}
         onDelete={handleDelete}
         onReplyClick={handleReplyClick}
+        onToggleReplies={toggleReplies}
+        showReplies={showReplies}
+        repliesCount={localReplies.length}
       />
       {localReplies.length > 0 && (
         <div className="mt-2 w-full">
-          {/* <button
-            onClick={toggleReplies}
-            className="text-blue-400 hover:underline"
-          >
-            {showReplies
-              ? '返信を非表示'
-              : `${localReplies.length}件の返信を表示`}
-          </button> */}
           {showReplies && (
             <div className="mt-2">
               {localReplies.map((reply) => (
@@ -193,6 +194,9 @@ const Post = forwardRef<HTMLDivElement, PostData>((props, ref) => {
                   data={reply}
                   onDelete={handleDelete}
                   onReplyClick={handleReplyClick}
+                  onToggleReplies={toggleReplies}
+                  showReplies={showReplies}
+                  repliesCount={0}
                 />
               ))}
             </div>
