@@ -33,28 +33,32 @@ jobs:
           echo "Vercel デプロイを開始します..."
           vercel pull --yes --environment=production --token $VERCEL_TOKEN
           vercel build --prod --token $VERCEL_TOKEN
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
-          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
-          echo "デプロイされた URL: $DEPLOYMENT_URL"
+          vercel deploy --prebuilt --prod --token $VERCEL_TOKEN > deployment_output.txt
+          echo "DEPLOYMENT_URL=$(cat deployment_output.txt | grep -o 'https://.*')" >> $GITHUB_ENV
+
+      - name: デプロイメント情報の表示
+        run: |
+          echo "デプロイされた URL: ${{ env.DEPLOYMENT_URL }}"
+          cat deployment_output.txt
 
       - name: デプロイメントチェック
         if: env.DEPLOYMENT_URL
         run: |
-          echo "チェックする URL: $DEPLOYMENT_URL"
-          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" $DEPLOYMENT_URL)
+          echo "チェックする URL: ${{ env.DEPLOYMENT_URL }}"
+          HTTP_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" ${{ env.DEPLOYMENT_URL }})
           echo "HTTP ステータスコード: $HTTP_RESPONSE"
           if [ $HTTP_RESPONSE = "200" ] || [ $HTTP_RESPONSE = "204" ]; then
             echo "デプロイメントが成功しました。ステータスコード: $HTTP_RESPONSE"
           else
             echo "デプロイメントが失敗しました。ステータスコード: $HTTP_RESPONSE"
-            curl -sS $DEPLOYMENT_URL
+            curl -sS ${{ env.DEPLOYMENT_URL }}
             exit 1
           fi
 
-      - name: デプロイメントログの確認
+      - name: Vercel デプロイログの確認
         if: always() && env.DEPLOYMENT_URL
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "デプロイメントログを確認しています..."
-          vercel logs $DEPLOYMENT_URL --token $VERCEL_TOKEN
+          vercel logs ${{ env.DEPLOYMENT_URL }} --token $VERCEL_TOKEN
