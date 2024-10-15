@@ -9,6 +9,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - uses: actions/checkout@v3
@@ -18,32 +22,21 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Vercel CLI のインストールと更新
-        run: |
-          npm install -g vercel
-          npm install -g vercel@latest
-          vercel --version
+      - name: Vercel CLI のインストール
+        run: npm install -g vercel
 
       - name: デバッグ情報の表示
         run: |
           echo "Vercel Token is set: ${{ secrets.VERCEL_TOKEN != '' }}"
-          echo "Vercel Project ID: ${{ secrets.VERCEL_PROJECT_ID }}"
-          echo "Vercel Org ID: ${{ secrets.VERCEL_ORG_ID }}"
-          vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Vercel へのログイン
-        run: vercel login --token ${{ secrets.VERCEL_TOKEN }}
+          echo "Vercel Project ID: $VERCEL_PROJECT_ID"
+          echo "Vercel Org ID: $VERCEL_ORG_ID"
 
       - name: Vercel へのデプロイ
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Vercel デプロイを開始します..."
-          vercel pull --yes --environment=production --token $VERCEL_TOKEN
-          vercel build --prod --token $VERCEL_TOKEN
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token $VERCEL_TOKEN)
+          vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }})
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "デプロイされた URL: $DEPLOYMENT_URL"
 
@@ -63,11 +56,9 @@ jobs:
 
       - name: Vercel デプロイログの確認
         if: always() && env.DEPLOYMENT_URL
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "デプロイメントログを確認しています..."
-          vercel logs ${{ env.DEPLOYMENT_URL }} --token $VERCEL_TOKEN
+          vercel logs ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }}
 
       - name: プロジェクト情報の確認
         if: failure()
