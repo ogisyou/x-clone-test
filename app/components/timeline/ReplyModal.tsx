@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, TextField, Button, Avatar, Snackbar } from '@mui/material';
-import { addDoc, collection, getFirestore, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  getFirestore,
+  serverTimestamp,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 interface ReplyData {
@@ -27,13 +34,23 @@ interface ReplyModalProps {
   onReplyAdded: (newReply: ReplyData) => void;
 }
 
-const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, originalPost, onReplyAdded }) => {
+const ReplyModal: React.FC<ReplyModalProps> = ({
+  isOpen,
+  onClose,
+  postId,
+  originalPost,
+  onReplyAdded,
+}) => {
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const { user } = useAuth();  
-  const [currentUserInfo, setCurrentUserInfo] = useState<{displayName: string; username: string; avatar: string} | null>(null);
+  const { user } = useAuth();
+  const [currentUserInfo, setCurrentUserInfo] = useState<{
+    displayName: string;
+    username: string;
+    avatar: string;
+  } | null>(null);
   const firestore = getFirestore();
 
   useEffect(() => {
@@ -42,7 +59,8 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
         const userDoc = await getDoc(doc(firestore, 'users', user.uid));
         const userData = userDoc.data();
         setCurrentUserInfo({
-          displayName: userData?.displayName || user.displayName || 'Unknown User',
+          displayName:
+            userData?.displayName || user.displayName || 'Unknown User',
           username: userData?.username || user.displayName || 'unknown',
           avatar: userData?.avatarURL || '',
         });
@@ -101,7 +119,9 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
             left: '50%',
             transform: 'translate(-50%, -50%)',
             width: 400,
-            bgcolor: 'background.paper',
+            bgcolor: 'black',
+            border: '1px solid',
+            borderColor: 'gray',
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
@@ -109,12 +129,29 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
         >
           <div className="mb-4">
             <div className="flex items-center mb-2">
-              <Avatar src={currentUserInfo?.avatar} className="w-8 h-8 mr-2" />
-              <span className="font-bold">{currentUserInfo?.displayName}</span>
-              <span className="text-gray-500 ml-2">@{currentUserInfo?.username}</span>
+              <Avatar
+                src={currentUserInfo?.avatar}
+                className="!w-16 !h-16 mr-2"
+                sx={{
+                  bgcolor: 'white',
+                  '& img': {
+                    objectFit: 'cover',
+                  },
+                }}
+              />
+              <div>
+                <p className="font-bold text-2xl">
+                  {currentUserInfo?.displayName}
+                </p>
+                <p className="text-gray-500 ml-2">
+                  @{currentUserInfo?.username}
+                </p>
+              </div>
             </div>
             <p>{originalPost.text}</p>
-            <p className="text-gray-500 text-sm mt-1">{originalPost.timestamp}</p>
+            <p className="text-gray-500 text-sm mt-1 ">
+              {originalPost.timestamp}
+            </p>
           </div>
           <TextField
             fullWidth
@@ -124,13 +161,36 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ isOpen, onClose, postId, origin
             placeholder="返信を入力"
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            className="mb-4"
+            className="mb-4 bg-black"
+            sx={{
+              '& .MuiInputBase-input': {
+                color: 'white',
+              },
+              '& .MuiInputLabel-root': {
+                color: 'white',
+              },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'gray', // ここで枠の色を変更
+                },
+                '&:hover fieldset': {
+                  borderColor: 'gray', // ホバー時の枠の色
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'gray', // フォーカス時の枠の色
+                },
+              },
+            }}
           />
-          <div className="flex justify-end">
+
+          <div className="flex justify-end mt-5">
             <Button
               variant="contained"
               onClick={handleReply}
-              disabled={replyText.trim() === '' || isSubmitting || !currentUserInfo}
+              className="!bg-blue-600 !text-white hover:!bg-blue-800"
+              disabled={
+                replyText.trim() === '' || isSubmitting || !currentUserInfo
+              }
             >
               {isSubmitting ? '投稿中...' : '返信'}
             </Button>
