@@ -33,6 +33,13 @@ jobs:
           echo "Vercel Project ID: $VERCEL_PROJECT_ID"
           echo "Vercel Org ID: $VERCEL_ORG_ID"
 
+      - name: ビルドキャッシュのクリア
+        run: |
+          echo "ビルドキャッシュをクリアしています..."
+          curl -X POST ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          echo "デプロイフックをトリガーしました。新しいビルドが開始されます。"
+          sleep 30  # デプロイフックが処理されるのを待つ
+
       - name: Vercel へのデプロイ
         run: |
           echo "Vercel デプロイを開始します..."
@@ -47,34 +54,43 @@ jobs:
         run: |
           echo "チェックする一時URL: ${{ env.DEPLOYMENT_URL }}"
           echo "チェックする本番URL: https://x-clone-test.vercel.app"
-          timeout 5m bash -c '
-            until curl -s -o /dev/null -w "%{http_code}" ${{ env.DEPLOYMENT_URL }} | grep -q "200\|204" && \
-                  curl -s -o /dev/null -w "%{http_code}" https://x-clone-test.vercel.app | grep -q "200\|204"; do
-              echo "Waiting for deployment..."
-              sleep 10
-            done
-          '
-          if [ $? -eq 0 ]; then
-            echo "デプロイメントが成功しました。"
-          else
-            echo "デプロイメントが失敗しました。タイムアウトまたはエラーが発生しました。"
-            exit 1
-          fi
+          for i in {1..30}; do
+            temp_status=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.DEPLOYMENT_URL }}/api/health)
+            prod_status=$(curl -s -o /dev/null -w "%{http_code}" https://x-clone-test.vercel.app/api/health)
+            echo "一時URL status: $temp_status, 本番URL status: $prod_status"
+            if [[ "$temp_status" =~ ^(200|204)$ ]] && [[ "$prod_status" =~ ^(200|204)$ ]]; then
+              echo "デプロイメントが成功しました。"
+              exit 0
+            fi
+            echo "Waiting for deployment... (Attempt $i of 30)"
+            sleep 10
+          done
+          echo "デプロイメントが失敗しました。タイムアウトまたはエラーが発生しました。"
+          exit 1
 
       - name: デプロイメント状態の確認
         if: failure()
         run: |
           echo "デプロイメント状態を確認しています..."
           vercel inspect ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }}
+          vercel inspect https://x-clone-test.vercel.app --token ${{ secrets.VERCEL_TOKEN }}
 
       - name: Vercel デプロイログの確認
         if: always() && env.DEPLOYMENT_URL
         run: |
           echo "デプロイメントログを確認しています..."
-          timeout 30s vercel logs ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }} --limit 50
+          vercel logs ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }} --since 5m
 
       - name: プロジェクト情報の確認
         if: failure()
         run: |
           echo "プロジェクト情報を確認しています..."
           vercel project ls --token ${{ secrets.VERCEL_TOKEN }}
+
+      - name: エラー時の追加情報収集
+        if: failure()
+        run: |
+          echo "エラー時の追加情報を収集しています..."
+          curl -I ${{ env.DEPLOYMENT_URL }}
+          curl -I https://x-clone-test.vercel.app
+          vercel list ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }}
