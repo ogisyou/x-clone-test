@@ -41,7 +41,6 @@ const nextConfig = {
     }
     return config;
   },
-  // 環境変数の設定を更新
   env: {
     FIREBASE_CONFIG: process.env.FIREBASE_CONFIG,
   },
