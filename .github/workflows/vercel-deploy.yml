@@ -45,9 +45,11 @@ jobs:
       - name: デプロイメントチェック
         if: env.DEPLOYMENT_URL
         run: |
-          echo "チェックする URL: ${{ env.DEPLOYMENT_URL }}"
-          timeout 2m bash -c '
-            until curl -s -o /dev/null -w "%{http_code}" ${{ env.DEPLOYMENT_URL }} | grep -q "200\|204"; do
+          echo "チェックする一時URL: ${{ env.DEPLOYMENT_URL }}"
+          echo "チェックする本番URL: https://x-clone-test.vercel.app"
+          timeout 5m bash -c '
+            until curl -s -o /dev/null -w "%{http_code}" ${{ env.DEPLOYMENT_URL }} | grep -q "200\|204" && \
+                  curl -s -o /dev/null -w "%{http_code}" https://x-clone-test.vercel.app | grep -q "200\|204"; do
               echo "Waiting for deployment..."
               sleep 10
             done
@@ -59,11 +61,17 @@ jobs:
             exit 1
           fi
 
+      - name: デプロイメント状態の確認
+        if: failure()
+        run: |
+          echo "デプロイメント状態を確認しています..."
+          vercel inspect ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }}
+
       - name: Vercel デプロイログの確認
         if: always() && env.DEPLOYMENT_URL
         run: |
           echo "デプロイメントログを確認しています..."
-          vercel logs ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }}
+          timeout 30s vercel logs ${{ env.DEPLOYMENT_URL }} --token ${{ secrets.VERCEL_TOKEN }} --limit 50
 
       - name: プロジェクト情報の確認
         if: failure()
