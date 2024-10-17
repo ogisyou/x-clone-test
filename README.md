@@ -2,101 +2,93 @@
 
 ## 概要
 
-X-clone は、リアルタイムの短文投稿ができる SNS プラットフォームです。<br >
-世界中の出来事や個人の意見に対して、短文投稿や他者フォローを行い、情報を共有することができます。<br >
-レスポンシブ対応しているため、スマホからも確認可能です。<br >
+X-clone は、リアルタイムの短文投稿ができる SNS プラットフォームです。
+世界中の出来事や個人の意見に対して、短文投稿や他者フォローを行い、情報を共有することができます。
+レスポンシブ対応しているため、スマホからも確認可能です。
 
-※プログラミング学習の成果として、「X（旧 Twitter）」のクローンサイトを作成しました。<br >
+※プログラミング学習の成果として、「X（旧 Twitter）」のクローンサイトを作成しました。
 
 開発期間：約 2 ヶ月
+
 
  <img width="1400" alt="スクリーンショット 2024-10-06" src="https://github.com/user-attachments/assets/d296651c-5c25-48ef-9c01-317b3a57d875">
  <img width="350" height="700" src= "https://github.com/user-attachments/assets/5cc394ed-b997-4896-ac6f-b0487b7070e7">
 
-[URL]
+
+
+
 画面右側の「ゲストログインボタン」から、メールアドレスを入力せずにログインできます。
 
 ## 使用技術
 
 ### フロントエンド
-
-- **React 18.3.1**: ユーザーインターフェース構築のための JavaScript ライブラリ
-- **Next.js 14.2.13**: React ベースのフルスタックフレームワーク
-- **TypeScript 5.1.6**: JavaScript に静的型付けを追加した言語
+- React 18.2.0
+- Next.js 14.2.15
+- TypeScript 5.6.2
 
 ### スタイリング
-
-- **Material-UI (@mui/material 6.1.1)**: React コンポーネントライブラリ
-- **Tailwind CSS 3.4.1**: ユーティリティファーストの CSS フレームワーク
+- Material-UI (@mui/material 5.15.6, @emotion/react 11.11.3, @emotion/styled 11.11.3)
+- Tailwind CSS 3.4.1
 
 ### バックエンド / インフラストラクチャ
-
-- **Firebase 10.13.2**:
-  - Firestore: NoSQL クラウドデータベース
-  - Authentication: ユーザー認証
-  - Storage: ファイルストレージ
-  - Cloud Functions 6.0.1: サーバーレス関数の実行
-- **Firebase Admin SDK 12.6.0**: サーバーサイドでの Firebase 操作
-- **Node.js 18**: サーバーサイド JavaScript 実行環境（Cloud Functions 用）
+- Firebase 10.7.2
+  - Firestore Database
+  - Authentication
+  - Storage
+  - Cloud Functions 4.6.0
+- Firebase Admin SDK 12.0.0
+- Node.js 20
 
 ### デプロイメント / ホスティング
-
-- **Vercel**: アプリケーションホスティングとデプロイメントプラットフォーム
-  - **Vercel CLI 37.6.0**: デプロイメント用のコマンドラインツール
-- **Firebase CLI 13.20.2**: Firebase 関連のデプロイメントとローカル開発用
+- Vercel (Next.js hosting)
+- Firebase (Cloud Functions, Firestore Database)
 
 ### ユーティリティとツール
-
-- **react-flip-move 3.0.5**: React コンポーネントのアニメーションライブラリ
-- **react-twitter-embed 4.0.4**: Twitter コンテンツを埋め込むための React コンポーネント
+- react-flip-move 3.0.5
+- react-twitter-embed 4.0.4
+- react-router-dom 6.21.3
+- Express 4.21.1
+- dotenv 16.4.5
 
 ### 状態管理とロジック
-
-- **Context API**: アプリケーション全体の状態管理
-- **Custom Hooks**: 再利用可能なロジックの実装
+- Context API (React built-in)
+- Custom Hooks
 
 ### 開発ツールとプラクティス
-
-- **ESLint 8.57.1**: JavaScript と TypeScript 用のリンターツール
-- **Prettier 3.3.3**: コードフォーマッター
-
-### セキュリティと設定
-
-- **CORS**: クロスオリジンリソース共有設定
-- **環境変数**: .env ファイルを使用したシークレット管理
+- ESLint 8.56.0
 
 ## 機能一覧
 
 1. アカウント管理
-
+   - アカウント作成（メールアドレスとパスワード）
    - Google アカウントでの登録・ログイン
    - ゲストユーザーとしてのログイン
    - ログアウト
 
 2. プロフィール管理
-
    - プロフィール情報の表示
    - プロフィール情報の編集（表示名、自己紹介、出身地、誕生日）
    - プロフィール画像の設定・変更
    - プロフィール背景画像の設定・変更
 
 3. 投稿機能
-
    - テキスト投稿の作成
    - 画像付き投稿の作成
    - 自分の投稿の削除
+   - 投稿への返信機能
+   - 投稿へのいいね機能
 
 4. タイムライン
-
-   - ホームタイムラインの表示（自分と他のユーザーの投稿）
-   - 特定のユーザーの投稿タイムライン表示
+   - ホームタイムラインの表示（自分とフォロー中のユーザーの投稿）
 
 5. ユーザー間交流
-
    - 他のユーザーのフォロー/フォロー解除
    - フォロー中のユーザー一覧表示
    - フォロワー一覧表示
    - おすすめユーザーの表示
 
-6. UI/UX
+6. 検索機能
+   - ユーザー検索機能（ユーザー名での検索）
+
+7. UI/UX
    - レスポンシブデザイン（スマートフォン、タブレット、デスクトップ対応）
