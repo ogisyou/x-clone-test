@@ -31,14 +31,14 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
     try {
       const { auth, db } = getFirebaseServices();
 
-      // Firebaseで新しいユーザーを作成
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // 確認メールを送信
+
       await sendEmailVerification(user);
 
-      // Firestoreにユーザー情報を保存
+
       await setDoc(doc(db, 'users', user.uid), {
         username,
         displayName: username,

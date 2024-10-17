@@ -1,10 +1,10 @@
-// firebase.ts
+// app/firebase.ts
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 
-// FIREBASE_CONFIG 環境変数からの設定読み込み
+
 const firebaseConfig = process.env.FIREBASE_CONFIG
   ? JSON.parse(process.env.FIREBASE_CONFIG)
   : {
@@ -37,12 +37,12 @@ try {
   console.error("Firebaseの初期化中にエラーが発生しました:", error);
 }
 
-// 型ガード関数
+
 function isInitialized(app: FirebaseApp | undefined): app is FirebaseApp {
   return typeof window !== "undefined" && app !== undefined;
 }
 
-// Firebase サービスを取得する関数
+
 function getFirebaseServices() {
   if (!isInitialized(app)) {
     throw new Error("Firebaseが初期化されていません");

@@ -1,3 +1,4 @@
+// app/components/common/LikeButton.tsx
 import React, { useState, useEffect } from 'react';
 import { Favorite, FavoriteBorder } from '@mui/icons-material';
 import { doc, setDoc, deleteDoc, getDoc, getFirestore } from 'firebase/firestore';
@@ -54,7 +55,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({ postId, initialLikeCount, onLik
         setLiked(true);
         setLikeCount(prev => prev + 1);
       }
-      onLikeToggle(!liked);  // 親コンポーネントに新しい状態を通知
+      onLikeToggle(!liked); 
     } catch (error) {
       console.error('いいねの更新中にエラーが発生しました:', error);
     }

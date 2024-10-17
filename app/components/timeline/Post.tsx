@@ -1,3 +1,4 @@
+// app/components/timeline/Post.tsx
 import React, { forwardRef, useState } from 'react';
 import { Avatar, Tooltip } from '@mui/material';
 import VerifiedUser from '@mui/icons-material/VerifiedUser';

@@ -1,4 +1,4 @@
-// BackgroundContext.tsx
+// app/contexts/BackgroundContext.tsx
 import React, { createContext, useContext, useState } from 'react';
 
 type BackgroundURL = string | null;

@@ -1,3 +1,4 @@
+// functions/src/index.ts
 import express from "express";
 import * as functions from "firebase-functions";
 import cors from "cors";
@@ -47,7 +48,6 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
     console.log(`ユーザー削除処理開始: ${uid}`);
 
     await db.runTransaction(async (transaction) => {
-      // ユーザーデータの取得と削除
       const userRef = db.collection("users").doc(uid);
       const userDoc = await transaction.get(userRef);
       if (!userDoc.exists) {
@@ -58,7 +58,6 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
       transaction.delete(userRef);
       console.log(`ユーザードキュメントを削除しました: ${uid}`);
 
-      // フォロワーとフォロー中のユーザーの更新
       const followers = userData?.followers || [];
       const following = userData?.following || [];
       [...followers, ...following].forEach((relatedUserId) => {
@@ -72,7 +71,7 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
         `${followers.length} 人のフォロワーと ${following.length} 人のフォロー中ユーザーデータを更新しました`
       );
 
-      // ユーザーのいいねを削除
+
       const postsRef = db.collection("posts");
       const likedPostsSnapshot = await postsRef.get();
       console.log(`取得した投稿数: ${likedPostsSnapshot.size}`);
@@ -81,16 +80,16 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
       let batch = db.batch();
       let operationCount = 0;
 
-      // 各投稿のサブコレクション「likes」からいいねを削除
+
       for (const postDoc of likedPostsSnapshot.docs) {
         const postRef = postDoc.ref;
-        const likeRef = postRef.collection("likes").doc(uid); // サブコレクションの該当ドキュメントを取得
+        const likeRef = postRef.collection("likes").doc(uid);
 
         const likeDoc = await likeRef.get();
         if (likeDoc.exists) {
-          batch.delete(likeRef); // サブコレクションの中のドキュメント（いいね）を削除
+          batch.delete(likeRef);
           batch.update(postRef, {
-            likeCount: FieldValue.increment(-1), // いいねカウントを減らす
+            likeCount: FieldValue.increment(-1),
           });
 
           operationCount++;
@@ -108,7 +107,6 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
 
       console.log("投稿のサブコレクションからいいねを削除しました");
 
-      // ユーザーの投稿を削除
       const userPostsSnapshot = await postsRef.where("uid", "==", uid).get();
 
       batch = db.batch();
@@ -116,12 +114,10 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
 
       for (const doc of userPostsSnapshot.docs) {
         const postRef = doc.ref;
-        // 投稿に対するすべてのいいねを削除
         const likesSnapshot = await postRef.collection("likes").get();
         likesSnapshot.docs.forEach((likeDoc) => {
           batch.delete(likeDoc.ref);
         });
-        // 投稿自体を削除
         batch.delete(postRef);
 
         operationCount++;
@@ -141,7 +137,6 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
       console.log(`${userPostsSnapshot.size} 件のユーザー投稿を削除しました`);
     });
 
-    // トランザクション外でユーザーの認証情報を削除
     await auth.deleteUser(uid);
     console.log(`ユーザーの認証情報を削除しました: ${uid}`);
 

@@ -1,3 +1,4 @@
+// app/components/widget/Widgets.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search } from '@mui/icons-material';
 import { collection, query, getDocs, getFirestore } from 'firebase/firestore';

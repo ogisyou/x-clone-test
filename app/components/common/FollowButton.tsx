@@ -1,3 +1,5 @@
+// app/components/common/FollowButton.tsx
+
 import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, arrayUnion, arrayRemove, getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';

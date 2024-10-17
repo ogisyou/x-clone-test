@@ -1,3 +1,4 @@
+// app/components/sidebar/Sidebar.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -20,7 +21,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'; 
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import XIcon from '@mui/icons-material/X';
 import { doc, Firestore, getDoc } from 'firebase/firestore';
@@ -29,41 +30,34 @@ import { db } from '../../firebase';
 import '../../globals.css';
 import Link from 'next/link';
 
-// SidebarProps 型定義
 interface SidebarProps {
   username: string;
-  className: string; // 修正: className プロパティを追加
+  className: string;
 }
 
-// currentUser 型
 interface CurrentUser {
   uid: string;
   displayName: string;
   avatarURL?: string;
 }
 
-// Sidebar コンポーネント
 function Sidebar({ username, className }: SidebarProps) {
   const [avatar, setAvatar] = useState<string>('');
   const auth = getAuth();
   const router = useRouter();
   const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // ローディング状態を追加
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-
       if (authUser) {
-        // ユーザーがログインしている場合
         try {
           const userDoc = doc(db as Firestore, 'users', authUser.uid);
           const userSnap = await getDoc(userDoc);
 
-
           if (userSnap.exists()) {
             const userData = userSnap.data();
-
 
             setCurrentUser({
               uid: authUser.uid,
@@ -78,13 +72,11 @@ function Sidebar({ username, className }: SidebarProps) {
           console.error('Error fetching user data:', error);
         }
       } else {
-        // ユーザーがログインしていない場合（ゲストユーザー）
         setCurrentUser({ uid: 'guest', displayName: '' });
       }
-      setLoading(false); // ローディング完了
+      setLoading(false);
     });
 
-    // クリーンアップ関数
     return () => unsubscribe();
   }, [auth]);
 
@@ -114,13 +106,12 @@ function Sidebar({ username, className }: SidebarProps) {
   };
 
   if (loading) {
-    return <div>Loading...</div>; // ローディング中の表示
+    return <div>Loading...</div>;
   }
 
   if (!currentUser) {
-    return null; // ローディング完了後、ユーザー情報がない場合は何も表示しない
+    return null;
   }
-
 
   return (
     <div
@@ -128,7 +119,7 @@ function Sidebar({ username, className }: SidebarProps) {
     >
       <div className="flex items-center ml-6 mb-3 mt-5">
         <Link
-          href={`/home/${currentUser.uid}`} // href 属性を使用
+          href={`/home/${currentUser.uid}`}
           className="flex items-center p-3 w-full rounded-full hover:bg-gray-800"
         >
           <XIcon className="text-xl" />

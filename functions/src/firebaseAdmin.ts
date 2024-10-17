@@ -3,7 +3,7 @@
 import * as admin from "firebase-admin";
 import * as dotenv from "dotenv";
 
-// .env ファイルから環境変数を読み込む
+
 dotenv.config();
 
 const projectId = process.env.MY_FIREBASE_PROJECT_ID;

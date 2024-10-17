@@ -1,3 +1,4 @@
+// app/components/timeline/Timeline.tsx
 import React, { useState, useEffect } from 'react';
 import TweetBox from './TweetBox';
 import Post from './Post';
@@ -12,7 +13,7 @@ import {
   Firestore,
   QuerySnapshot,
   DocumentData,
-  Query
+  Query,
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import FlipMove from 'react-flip-move';
@@ -121,18 +122,20 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
           const postData: PostData = {
             id: doc.id,
             ...(data as Omit<PostData, 'id' | 'replies'>),
-            timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : '不明な時間', // null チェック
+            timestamp: data.timestamp
+              ? data.timestamp.toDate().toLocaleString()
+              : '不明な時間',
             likeCount: data.likeCount || 0,
             replies: [],
             userId: data.userId || data.uid,
           };
-          
+
           const repliesQuery = query(
             collection(firestore, 'replies'),
             where('postId', '==', doc.id),
             orderBy('createdAt', 'asc')
           );
-    
+
           const repliesSnapshot = await getDocs(repliesQuery);
           const replies = repliesSnapshot.docs.map((replyDoc) => ({
             id: replyDoc.id,
@@ -142,7 +145,7 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
               ? replyDoc.data().createdAt.toDate().toLocaleString()
               : '日時不明',
           }));
-    
+
           return { ...postData, replies };
         })
       );
@@ -153,39 +156,45 @@ const Timeline: React.FC<TimelineProps> = ({ origin, uid }) => {
       console.error('データ取得エラー:', error);
     });
 
-    const unsubscribe = onSnapshot(q, async (querySnapshot: QuerySnapshot<DocumentData>) => {
-      const postsWithReplies = await Promise.all(
-        querySnapshot.docs.map(async (doc: DocumentData) => {
-          const data = doc.data();
-          const postData: PostData = {
-            id: doc.id,
-            ...(data as Omit<PostData, 'id' | 'replies'>),
-            timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : '不明な時間', // null チェック
-            likeCount: data.likeCount || 0,
-            replies: [],
-            userId: data.userId || data.uid,
-          };
+    const unsubscribe = onSnapshot(
+      q,
+      async (querySnapshot: QuerySnapshot<DocumentData>) => {
+        const postsWithReplies = await Promise.all(
+          querySnapshot.docs.map(async (doc: DocumentData) => {
+            const data = doc.data();
+            const postData: PostData = {
+              id: doc.id,
+              ...(data as Omit<PostData, 'id' | 'replies'>),
+              timestamp: data.timestamp
+                ? data.timestamp.toDate().toLocaleString()
+                : '不明な時間',
+              likeCount: data.likeCount || 0,
+              replies: [],
+              userId: data.userId || data.uid,
+            };
 
-          const repliesQuery = query(
-            collection(firestore, 'replies'),
-            where('postId', '==', doc.id),
-            orderBy('createdAt', 'asc')
-          );
+            const repliesQuery = query(
+              collection(firestore, 'replies'),
+              where('postId', '==', doc.id),
+              orderBy('createdAt', 'asc')
+            );
 
-          const repliesSnapshot = await getDocs(repliesQuery);
-          const replies = repliesSnapshot.docs.map((replyDoc) => ({
-            id: replyDoc.id,
-            ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
-            timestamp: replyDoc.data().createdAt ? replyDoc.data().createdAt.toDate().toLocaleString() : '日時不明', // null チェック
-          }));
+            const repliesSnapshot = await getDocs(repliesQuery);
+            const replies = repliesSnapshot.docs.map((replyDoc) => ({
+              id: replyDoc.id,
+              ...(replyDoc.data() as Omit<ReplyData, 'id' | 'timestamp'>),
+              timestamp: replyDoc.data().createdAt
+                ? replyDoc.data().createdAt.toDate().toLocaleString()
+                : '日時不明',
+            }));
 
-          return { ...postData, replies };
-        })
-      );
+            return { ...postData, replies };
+          })
+        );
 
-
-      setPosts(postsWithReplies);
-    });
+        setPosts(postsWithReplies);
+      }
+    );
 
     return () => {
       console.log('リスナー解除');

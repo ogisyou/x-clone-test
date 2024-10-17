@@ -1,3 +1,4 @@
+// app/components/timeline/ReplyModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, TextField, Button, Avatar, Snackbar } from '@mui/material';
 import {
@@ -171,13 +172,13 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
               },
               '& .MuiOutlinedInput-root': {
                 '& fieldset': {
-                  borderColor: 'gray', // ここで枠の色を変更
+                  borderColor: 'gray',
                 },
                 '&:hover fieldset': {
-                  borderColor: 'gray', // ホバー時の枠の色
+                  borderColor: 'gray',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: 'gray', // フォーカス時の枠の色
+                  borderColor: 'gray',
                 },
               },
             }}

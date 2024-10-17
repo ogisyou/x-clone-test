@@ -1,3 +1,4 @@
+// app/contexts/AuthContext.tsx
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { getFirebaseServices } from '../firebase'; 
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -8,7 +9,7 @@ interface AuthContextProps {
   setIsAuth: (value: boolean) => void;
   user: User | null;
   setUser: (user: User | null) => void;
-  loading: boolean; // loading 状態を追加
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -16,7 +17,7 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); // loading 初期値を true に
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   
   useEffect(() => {
@@ -32,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('ユーザーがログアウトしました');
         router.push('/login');
       }
-      setLoading(false); // 認証状態のチェックが完了したら loading を false に
+      setLoading(false);
     });
 
     return () => unsubscribe();
