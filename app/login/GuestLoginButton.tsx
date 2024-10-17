@@ -1,8 +1,8 @@
 // app/login/GuestLoginButton.tsx
 
 import React, { useState } from 'react';
-import { signInAnonymously } from 'firebase/auth';
-import { doc, setDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { signInAnonymously, deleteUser } from 'firebase/auth';
+import { doc, setDoc, collection, query, orderBy, getDocs, deleteDoc } from 'firebase/firestore';
 import { getFirebaseServices } from '../firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,26 +26,19 @@ const GuestLoginButton: React.FC<GuestLoginButtonProps> = ({ onLoginSuccess, onL
 
   const handleGuestLogin = async () => {
     setIsLoading(true);
+    let newUser = null;
 
     try {
       const { auth, db } = getFirebaseServices();
 
+
       const result = await signInAnonymously(auth);
-      const guestUser = result.user as User;
-      const guestPrefix = guestUser.uid.slice(0, 4);
+      newUser = result.user as User;
+      const guestPrefix = newUser.uid.slice(0, 4);
       const guestUsername = `Guest_${guestPrefix}`;
 
-      console.log('ゲストログイン成功: setIsAuthに渡される値:', false);
-      console.log('ゲストログイン成功: setUserに渡される値:', guestUser);
 
-      localStorage.setItem('isAuth', 'false');
-      localStorage.setItem('user', JSON.stringify(guestUser));
-      localStorage.setItem('username', guestUsername);
-
-      setIsAuth(false);
-      setUser(guestUser);
-
-      const userDocRef = doc(db, 'users', guestUser.uid);
+      const userDocRef = doc(db, 'users', newUser.uid);
       await setDoc(
         userDocRef,
         {
@@ -61,12 +54,11 @@ const GuestLoginButton: React.FC<GuestLoginButtonProps> = ({ onLoginSuccess, onL
         { merge: true }
       );
 
-      const idToken = await guestUser.getIdToken(true);
-      console.log("認証トークン:", idToken);
+
+      const idToken = await newUser.getIdToken(true);
+
 
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/deleteUser`;
-      console.log('API URL:', apiUrl);
-
       const usersCollection = collection(db, 'users');
       const guestQuery = query(usersCollection, orderBy('createdAt'));
       const guestSnapshot = await getDocs(guestQuery);
@@ -99,11 +91,37 @@ const GuestLoginButton: React.FC<GuestLoginButtonProps> = ({ onLoginSuccess, onL
         console.log('削除対象の古いゲストユーザーが見つかりませんでした');
       }
 
-      onLoginSuccess(guestUser);
-      router.push(`/home/${guestUser.uid}`);
-      console.log(`ホームページに遷移しました: /home/${guestUser.uid}`);
+
+      localStorage.setItem('isAuth', 'false');
+      localStorage.setItem('user', JSON.stringify(newUser));
+      localStorage.setItem('username', guestUsername);
+
+      setIsAuth(false);
+      setUser(newUser);
+
+
+      onLoginSuccess(newUser);
+      router.push(`/home/${newUser.uid}`);
+      console.log(`ホームページに遷移しました: /home/${newUser.uid}`);
     } catch (error) {
       console.error('ゲストログインエラー:', error);
+
+      if (newUser) {
+        try {
+          const { db } = getFirebaseServices();
+          
+
+          await deleteDoc(doc(db, 'users', newUser.uid));
+          console.log(`Firestoreからユーザー ${newUser.uid} を削除しました`);
+          
+
+          await deleteUser(newUser);
+          console.log(`Firebase Authenticationからユーザー ${newUser.uid} を削除しました`);
+        } catch (deleteError) {
+          console.error('ユーザー削除中にエラーが発生しました:', deleteError);
+        }
+      }
+      
       onLoginError(error instanceof Error ? error.message : '不明なエラーが発生しました');
     } finally {
       setIsLoading(false);
