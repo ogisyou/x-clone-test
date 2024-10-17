@@ -39,7 +39,7 @@ https://x-clone-test-5puz3vqwj-ogisyous-projects.vercel.app/login
 
 ### デプロイメント / ホスティング
 - Vercel (Next.js hosting)
-  - デプロイ方法: vercelコマンド入力
+  - デプロイ方法:  `vercel --prod`コマンド入力
 - Firebase (Cloud Functions, Firestore Database)
   - デプロイ方法: `firebase deploy --only functions` コマンド入力
 
