@@ -16,7 +16,7 @@ X-clone は、リアルタイムの短文投稿ができる SNS プラットフ�
 
 
 
-
+[URL](https://x-clone-test-5puz3vqwj-ogisyous-projects.vercel.app/login)
 画面右側の「ゲストログインボタン」から、メールアドレスを入力せずにログインできます。
 
 ## 使用技術
