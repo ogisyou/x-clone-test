@@ -71,7 +71,6 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
         `${followers.length} 人のフォロワーと ${following.length} 人のフォロー中ユーザーデータを更新しました`
       );
 
-
       const postsRef = db.collection("posts");
       const likedPostsSnapshot = await postsRef.get();
       console.log(`取得した投稿数: ${likedPostsSnapshot.size}`);
@@ -79,7 +78,6 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
       const batchSize = 500;
       let batch = db.batch();
       let operationCount = 0;
-
 
       for (const postDoc of likedPostsSnapshot.docs) {
         const postRef = postDoc.ref;
@@ -135,13 +133,41 @@ const deleteUserHandler: express.RequestHandler = async (req, res) => {
       }
 
       console.log(`${userPostsSnapshot.size} 件のユーザー投稿を削除しました`);
+
+      // 返信の削除処理を追加
+      const repliesRef = db.collection("replies");
+      const userRepliesSnapshot = await repliesRef
+        .where("userId", "==", uid)
+        .get();
+
+      batch = db.batch();
+      operationCount = 0;
+
+      for (const replyDoc of userRepliesSnapshot.docs) {
+        batch.delete(replyDoc.ref);
+
+        operationCount++;
+        if (operationCount === batchSize) {
+          await batch.commit();
+          batch = db.batch();
+          operationCount = 0;
+        }
+
+        console.log(`返信 ${replyDoc.id} を削除しました`);
+      }
+
+      if (operationCount > 0) {
+        await batch.commit();
+      }
+
+      console.log(`${userRepliesSnapshot.size} 件のユーザー返信を削除しました`);
     });
 
     await auth.deleteUser(uid);
     console.log(`ユーザーの認証情報を削除しました: ${uid}`);
 
     console.log(
-      `ユーザー ${uid} 、投稿、いいね、関連データが正常に削除されました`
+      `ユーザー ${uid} 、投稿、いいね、返信、関連データが正常に削除されました`
     );
     res.status(200).json({message: "ユーザーが正常に削除されました"});
   } catch (error) {
