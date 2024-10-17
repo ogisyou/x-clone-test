@@ -41,7 +41,9 @@ X-clone は、リアルタイムの短文投稿ができる SNS プラットフ�
 
 ### デプロイメント / ホスティング
 - Vercel (Next.js hosting)
+vercelコのマンド入力
 - Firebase (Cloud Functions, Firestore Database)
+firebase deploy --only functionsのコマンド入力
 
 ### ユーティリティとツール
 - react-flip-move 3.0.5
