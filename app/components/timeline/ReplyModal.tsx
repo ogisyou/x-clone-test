@@ -1,4 +1,3 @@
-// app/components/timeline/ReplyModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, TextField, Button, Avatar, Snackbar } from '@mui/material';
 import {
@@ -134,7 +133,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
                 src={currentUserInfo?.avatar}
                 className="!w-16 !h-16 mr-2"
                 sx={{
-                  bgcolor: 'white',
+                  bgcolor: currentUserInfo?.avatar ? 'white' : undefined,
                   '& img': {
                     objectFit: 'cover',
                   },
