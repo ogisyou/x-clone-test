@@ -10,13 +10,12 @@ X-clone は、リアルタイムの短文投稿ができる SNS プラットフ�
 
 開発期間：約 2 ヶ月
 
-
  <img width="1400" alt="スクリーンショット 2024-10-06" src="https://github.com/user-attachments/assets/d296651c-5c25-48ef-9c01-317b3a57d875">
  <img width="350" height="700" src= "https://github.com/user-attachments/assets/5cc394ed-b997-4896-ac6f-b0487b7070e7">
-
-
+ 
 
 [URL](https://x-clone-test-5puz3vqwj-ogisyous-projects.vercel.app/login)
+
 画面右側の「ゲストログインボタン」から、メールアドレスを入力せずにログインできます。
 
 ## 使用技術
@@ -41,9 +40,9 @@ X-clone は、リアルタイムの短文投稿ができる SNS プラットフ�
 
 ### デプロイメント / ホスティング
 - Vercel (Next.js hosting)
-vercelコのマンド入力
+  - デプロイ方法: vercelコマンド入力
 - Firebase (Cloud Functions, Firestore Database)
-firebase deploy --only functionsのコマンド入力
+  - デプロイ方法: `firebase deploy --only functions` コマンド入力
 
 ### ユーティリティとツール
 - react-flip-move 3.0.5
