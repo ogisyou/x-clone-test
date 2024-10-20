@@ -13,7 +13,7 @@ X-clone は、リアルタイムの短文投稿ができる SNS プラットフ�
  <img width="1400" alt="スクリーンショット 2024-10-06" src="https://github.com/user-attachments/assets/d296651c-5c25-48ef-9c01-317b3a57d875">
  <img width="350" height="700" src= "https://github.com/user-attachments/assets/5cc394ed-b997-4896-ac6f-b0487b7070e7">
 
-https://x-clone-test-3g7zxvnyn-ogisyous-projects.vercel.app/login
+https://x-clone-test-l4rrvr7dg-ogisyous-projects.vercel.app/login
 
 画面右側の「ゲストログインボタン」から、メールアドレスを入力せずにログインできます。
 
