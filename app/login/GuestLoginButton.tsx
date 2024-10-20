@@ -64,7 +64,7 @@ const GuestLoginButton: React.FC<GuestLoginButtonProps> = ({ onLoginSuccess, onL
       const guestSnapshot = await getDocs(guestQuery);
       const guestUsers = guestSnapshot.docs.filter((doc) => doc.data().isAnonymous);
 
-      if (guestUsers.length > 1) {
+      if (guestUsers.length > 2) {
         const oldestUser = guestUsers[0];
         const oldestUid = oldestUser.id;
 
