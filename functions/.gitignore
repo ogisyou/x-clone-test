@@ -13,3 +13,4 @@ firebase-admin-key.json
 gcp-key.json
 .env
 config.json
+firebase-debug.log
